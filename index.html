@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YOUR NAME · Portfolio</title>
+<style>
+:root{
+  --mauve:#c4a4c0;--pink:#e8a0b0;--blue:#7096b8;--blue-light:#b8cfe8;
+  --gold:#d4a855;--gold-light:#f0d090;--pink-light:#f5d0d8;
+  --dusk1:#0e0820;--dusk3:#28164a;--dusk5:#502e80;
+  --text-light:#f8f0f8;--text-muted:#c0a0c0;
+  --serif:Georgia,'Palatino Linotype',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--serif);background:var(--dusk1);color:var(--text-light);min-height:100vh;overflow-x:hidden;-webkit-user-select:none;user-select:none;}
+.sky-bg{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 140% 72% at 50% 118%,#b8485890 0%,transparent 52%),radial-gradient(ellipse 95% 62% at 88% 98%,#90508088 0%,transparent 48%),radial-gradient(ellipse 72% 52% at 12% 88%,#406090a8 0%,transparent 48%),linear-gradient(175deg,#060310 0%,#0e0820 28%,#1a1032 52%,#281648 72%,#140c28 100%);}
+.particles{position:fixed;inset:0;pointer-events:none;z-index:1;}
+.particle{position:absolute;border-radius:50%;animation:pfloat linear infinite;opacity:0;}
+@keyframes pfloat{0%{transform:translateY(105vh);opacity:0;}8%{opacity:.75;}90%{opacity:.12;}100%{transform:translateY(-8vh) translateX(55px);opacity:0;}}
+#noticeBar{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(80,46,128,.98);border-bottom:1px solid rgba(212,168,85,.35);padding:10px;text-align:center;font-size:10px;letter-spacing:5px;color:var(--gold);opacity:0;transform:translateY(-100%);transition:all .32s;pointer-events:none;}
+#noticeBar.show{opacity:1;transform:translateY(0);}
+header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
+.site-eyebrow{font-size:9px;letter-spacing:8px;color:var(--gold);opacity:.68;margin-bottom:16px;text-transform:uppercase;}
+.site-title{font-size:clamp(28px,5vw,58px);font-weight:400;letter-spacing:12px;background:linear-gradient(128deg,var(--gold-light) 0%,var(--pink-light) 32%,var(--blue-light) 64%,var(--gold) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:12px;}
+.site-tagline{font-style:italic;font-size:15px;color:var(--text-muted);letter-spacing:4px;}
+.header-orn{width:260px;height:1px;background:linear-gradient(90deg,transparent,var(--gold) 38%,rgba(232,160,176,.65) 62%,transparent);margin:26px auto 0;}
+.main-columns{position:relative;z-index:10;display:grid;grid-template-columns:1fr 1.15fr 1fr;padding:0 0 130px;}
+.vdiv{position:absolute;top:4%;bottom:4%;width:1px;background:linear-gradient(180deg,transparent,rgba(212,168,85,.2) 18%,rgba(212,168,85,.2) 82%,transparent);}
+.column{padding:38px 30px 52px;}
+.col-eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;margin-bottom:7px;opacity:.72;}
+.col-eyebrow.bk{color:var(--mauve);}.col-eyebrow.ar{color:var(--pink);}.col-eyebrow.fa{color:var(--blue-light);}
+.col-head{font-style:italic;font-size:26px;margin-bottom:5px;}
+.bk .col-head{color:var(--mauve);}.ar .col-head{color:var(--pink);}.fa .col-head{color:var(--blue-light);}
+.col-rule{height:1px;margin:18px 0 26px;}
+.bk .col-rule{background:linear-gradient(90deg,var(--mauve),transparent);}
+.ar .col-rule{background:linear-gradient(90deg,var(--pink),transparent);}
+.fa .col-rule{background:linear-gradient(90deg,var(--blue-light),transparent);}
+.book-card{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid rgba(196,164,192,.11);cursor:pointer;transition:all .26s;}
+.book-card:hover{padding-left:9px;border-bottom-color:rgba(196,164,192,.36);}
+.book-thumb{flex-shrink:0;width:56px;height:80px;border-radius:3px;display:flex;align-items:center;justify-content:center;background:linear-gradient(148deg,var(--dusk3),var(--dusk5));border:1px solid rgba(196,164,192,.2);font-size:7px;color:rgba(255,255,255,.2);box-shadow:3px 5px 16px rgba(0,0,0,.5);overflow:hidden;}
+.book-thumb img{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+.book-meta{flex:1;min-width:0;}
+.book-name{font-size:14px;line-height:1.45;color:var(--text-light);margin-bottom:4px;}
+.book-year{font-size:10px;color:var(--text-muted);letter-spacing:2px;}
+.book-tag{font-style:italic;font-size:11px;color:var(--gold);opacity:.58;margin-top:5px;}
+.article-card{padding:13px 0;border-bottom:1px solid rgba(232,160,176,.1);cursor:pointer;transition:all .24s;position:relative;}
+.article-card:hover{padding-left:10px;}
+.article-card::before{content:'';position:absolute;left:-2px;top:50%;transform:translateY(-50%) scaleY(0);width:2px;height:52%;background:var(--pink);transition:transform .3s;border-radius:1px;}
+.article-card:hover::before{transform:translateY(-50%) scaleY(1);}
+.art-cat{font-size:9px;letter-spacing:3px;color:var(--pink);text-transform:uppercase;margin-bottom:5px;opacity:.76;}
+.art-title{font-size:15px;line-height:1.5;color:var(--text-light);margin-bottom:3px;}
+.art-excerpt{font-style:italic;font-size:13px;color:var(--text-muted);line-height:1.6;}
+.art-date{font-size:9px;color:var(--text-muted);letter-spacing:2px;margin-top:6px;opacity:.48;}
+.fa-section{margin-bottom:28px;}
+.fa-cat-row{font-size:9px;letter-spacing:4px;color:var(--blue);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:10px;opacity:.86;}
+.fa-cat-row::after{content:'';flex:1;height:1px;background:rgba(112,150,184,.2);}
+.fa-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fa-item{aspect-ratio:2/3;border-radius:5px;background:linear-gradient(148deg,var(--dusk3),var(--dusk5));border:1px solid rgba(112,150,184,.16);cursor:pointer;transition:all .3s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;overflow:hidden;position:relative;}
+.fa-item:hover{transform:translateY(-5px);border-color:rgba(184,207,232,.5);box-shadow:0 12px 30px rgba(112,150,184,.2);}
+.fa-item img{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:4px;pointer-events:none;}
+.fa-item-icon{font-size:20px;opacity:.2;position:relative;z-index:1;}
+.fa-item-lbl{font-size:8px;letter-spacing:2px;color:var(--blue-light);opacity:.4;text-transform:uppercase;position:relative;z-index:1;}
+#gmBar{position:fixed;bottom:22px;right:22px;z-index:20;display:flex;align-items:center;gap:10px;background:rgba(18,8,34,.95);border:1px solid rgba(212,168,85,.24);border-radius:50px;padding:8px 16px 8px 14px;backdrop-filter:blur(20px);}
+.mwave{display:flex;align-items:center;gap:2px;height:16px;}
+.mwave span{display:block;width:3px;background:var(--gold);border-radius:2px;animation:mw 1.3s ease-in-out infinite;}
+.mwave span:nth-child(1){height:5px;animation-delay:.00s;}.mwave span:nth-child(2){height:13px;animation-delay:.20s;}.mwave span:nth-child(3){height:9px;animation-delay:.40s;}.mwave span:nth-child(4){height:14px;animation-delay:.10s;}.mwave span:nth-child(5){height:7px;animation-delay:.30s;}
+.mwave.paused span{animation-play-state:paused;height:3px!important;transition:height .3s;}
+@keyframes mw{0%,100%{transform:scaleY(.4);}50%{transform:scaleY(1);}}
+#gmInfo{font-style:italic;font-size:12px;color:var(--text-muted);max-width:155px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#gmBtn{background:none;border:none;color:var(--gold);cursor:pointer;font-size:15px;line-height:1;}
+#gmBtn:disabled{opacity:.2;cursor:default;}
+#ytWrap{position:fixed;bottom:68px;right:22px;z-index:20;width:275px;border-radius:10px;overflow:hidden;border:1px solid rgba(212,168,85,.18);display:none;box-shadow:0 14px 44px rgba(0,0,0,.65);background:#000;}
+#ytWrap.open{display:block;}
+.yt-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 12px;background:rgba(18,8,34,.96);}
+.yt-lbl{font-size:9px;letter-spacing:2px;color:var(--gold);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.yt-x{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;}
+.yt-x:hover{color:var(--gold);}
+.yt-x[hidden]{display:none;}
+#ytIframe{width:100%;height:154px;border:none;display:block;}
+
+/* ── MODALS: highest z-index, nothing above them ── */
+.modal-bd{
+  display:none;position:fixed;inset:0;
+  z-index:1000;
+  background:rgba(5,2,12,.97);backdrop-filter:blur(14px);overflow-y:auto;
+}
+.modal-bd.active{display:block;animation:mfade .38s;}
+@keyframes mfade{from{opacity:0;}to{opacity:1;}}
+.modal-inner{position:relative;max-width:780px;margin:0 auto;padding:70px 58px 90px;animation:mup .44s cubic-bezier(.16,1,.3,1);}
+@keyframes mup{from{transform:translateY(28px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+
+/* watermark inside modal via CSS only */
+.modal-bd::before{
+  content:'Porphyrogenitusee';
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-25deg);
+  font-family:var(--serif);font-style:italic;font-size:72px;
+  color:rgba(212,168,85,0.045);
+  pointer-events:none;z-index:0;
+  white-space:nowrap;letter-spacing:8px;
+}
+.modal-inner{position:relative;z-index:1;}
+
+.modal-close{position:fixed;top:22px;right:30px;z-index:1001;background:rgba(60,34,100,.72);border:1px solid rgba(212,168,85,.28);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold);font-size:18px;line-height:1;transition:background .2s;}
+.modal-close:hover{background:rgba(212,168,85,.14);}
+.modal-eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;opacity:.55;margin-bottom:18px;}
+.modal-title{font-size:clamp(26px,4vw,46px);font-weight:400;line-height:1.18;margin-bottom:7px;}
+.modal-sub{font-style:italic;font-size:14px;color:var(--text-muted);margin-bottom:28px;}
+.modal-rule{height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,85,.35),transparent);margin:22px 0;}
+.modal-body{font-size:16px;line-height:2;color:rgba(248,240,248,.78);font-weight:300;}
+.modal-body p{margin-bottom:.9em;}
+.modal-body h2{font-size:1.3em;color:var(--gold);margin:1.2em 0 .5em;}
+.modal-body h3{font-size:1.1em;color:var(--mauve);margin:1em 0 .4em;}
+.modal-body blockquote{border-left:3px solid rgba(212,168,85,.4);padding-left:16px;color:var(--text-muted);font-style:italic;margin:1em 0;}
+.modal-body ul,.modal-body ol{padding-left:22px;margin-bottom:.9em;}
+.np-bar{display:flex;align-items:center;gap:12px;background:rgba(40,22,74,.58);border:1px solid rgba(212,168,85,.14);border-radius:8px;padding:11px 15px;margin-bottom:24px;}
+.np-label{font-style:italic;font-size:13px;color:var(--gold);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ctrl-btn{background:none;border:1px solid rgba(212,168,85,.26);border-radius:50%;width:28px;height:28px;color:var(--gold);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .2s;flex-shrink:0;}
+.ctrl-btn:hover{background:rgba(212,168,85,.1);}
+.ch-list{margin-bottom:30px;}
+.ch-item{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:7px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:all .22s;}
+.ch-item:hover{background:rgba(196,164,192,.08);padding-left:22px;}
+.ch-item.active{background:rgba(196,164,192,.14);border-left:2px solid var(--mauve);}
+.ch-num{font-size:10px;color:var(--mauve);letter-spacing:2px;min-width:52px;opacity:.65;}
+.ch-name{font-size:14px;flex:1;line-height:1.4;}
+.ch-arrow{font-size:12px;color:var(--gold);opacity:.3;}
+.ch-item:hover .ch-arrow,.ch-item.active .ch-arrow{opacity:.7;}
+.ch-content{display:none;padding:24px 0 0;border-top:1px solid rgba(212,168,85,.12);margin-top:8px;animation:mfade .3s;}
+.ch-content.visible{display:block;}
+.ch-content-title{font-size:10px;letter-spacing:3px;color:var(--mauve);opacity:.7;margin-bottom:16px;text-transform:uppercase;}
+.ch-empty{font-style:italic;font-size:14px;color:var(--text-muted);opacity:.5;}
+.book-intro{margin-bottom:28px;}
+.book-intro-label{font-size:9px;letter-spacing:4px;color:var(--gold);opacity:.55;text-transform:uppercase;margin-bottom:12px;}
+.fa-modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px;margin-top:18px;}
+.fa-modal-item{aspect-ratio:2/3;border-radius:8px;background:linear-gradient(148deg,var(--dusk3),var(--dusk5));border:1px solid rgba(112,150,184,.16);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;overflow:hidden;position:relative;}
+.fa-modal-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px;pointer-events:none;}
+.fa-modal-icon{font-size:28px;opacity:.18;position:relative;z-index:1;}
+.fa-modal-name{font-size:9px;letter-spacing:2px;color:var(--blue-light);opacity:.45;text-transform:uppercase;text-align:center;padding:0 8px;position:relative;z-index:1;}
+.fa-music-badge{font-style:italic;font-size:12px;color:var(--gold);opacity:.58;margin-bottom:16px;}
+/* ── LIGHTBOX ── */
+#lightbox{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.95);align-items:center;justify-content:center;cursor:zoom-out;}
+#lightbox.open{display:flex;}
+#lightbox img{max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;}
+#lightbox-close{position:fixed;top:20px;right:24px;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;z-index:2001;opacity:.6;}
+#lightbox-close:hover{opacity:1;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(212,168,85,.2);border-radius:2px;}
+img{-webkit-user-drag:none;user-drag:none;}
+@media(max-width:700px){.main-columns{grid-template-columns:1fr;}.vdiv{display:none;}.modal-inner{padding:46px 22px 68px;}.fa-grid{grid-template-columns:repeat(2,1fr);}#ytWrap{width:calc(100vw - 44px);}}
+</style>
+</head>
+<body>
+<script>
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('copy',e=>{e.preventDefault();showNotice('Porphyrogenitusee · © All Rights Reserved');});
+document.addEventListener('cut',e=>e.preventDefault());
+document.addEventListener('dragstart',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if((e.ctrlKey||e.metaKey)&&['c','a','s','u','p','j','i'].includes(k))e.preventDefault();
+  if(e.key==='Escape'){const o=document.querySelector('.modal-bd.active');if(o)closeModal(o.id);}
+});
+</script>
+
+<div class="sky-bg"></div>
+<div class="particles" id="particles"></div>
+<div id="noticeBar"></div>
+
+<header>
+  <div class="site-eyebrow">Creative Portfolio</div>
+  <h1 class="site-title">YOUR NAME</h1>
+  <div class="site-tagline">Writer · Fashion Designer · Artist</div>
+  <div class="header-orn"></div>
+</header>
+
+<div class="main-columns">
+  <div class="vdiv" style="left:33.33%"></div>
+  <div class="vdiv" style="left:66.66%"></div>
+  <div class="column bk">
+    <div class="col-eyebrow bk">Books</div>
+    <div class="col-head">我的书</div>
+    <div class="col-rule"></div>
+    <div id="bookList"><div class="loading-col">Loading…</div></div>
+  </div>
+  <div class="column ar">
+    <div class="col-eyebrow ar">Articles</div>
+    <div class="col-head">文章</div>
+    <div class="col-rule"></div>
+    <div id="articleList"><div class="loading-col">Loading…</div></div>
+  </div>
+  <div class="column fa">
+    <div class="col-eyebrow fa">Fashion Design</div>
+    <div class="col-head">服装设计</div>
+    <div class="col-rule"></div>
+    <div id="fashionList"><div class="loading-col">Loading…</div></div>
+  </div>
+</div>
+
+<div id="gmBar">
+  <div class="mwave paused" id="gmWave"><span></span><span></span><span></span><span></span><span></span></div>
+  <div id="gmInfo">选择作品以播放音乐</div>
+  <button id="gmBtn" onclick="toggleGM()">▶</button>
+</div>
+
+<div id="ytWrap">
+  <div class="yt-topbar">
+    <div class="yt-lbl" id="ytLbl">—</div>
+    <button class="yt-x" id="ytX" onclick="userHideYT()">✕</button>
+  </div>
+  <iframe id="ytIframe" allow="autoplay" allowfullscreen></iframe>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Book Modal -->
+<div class="modal-bd" id="bookModal">
+  <button class="modal-close" onclick="closeModal('bookModal')">✕</button>
+  <div class="modal-inner">
+    <div class="modal-eyebrow" style="color:var(--mauve)">Books · 我的书</div>
+    <div class="modal-title" id="bTitle"></div>
+    <div class="modal-sub" id="bSub"></div>
+    <div class="modal-rule"></div>
+    <div class="np-bar">
+      <div class="mwave paused" id="npWave" style="opacity:.72">
+        <span style="background:var(--gold)"></span><span style="background:var(--gold)"></span>
+        <span style="background:var(--gold)"></span><span style="background:var(--gold)"></span>
+        <span style="background:var(--gold)"></span>
+      </div>
+      <div class="np-label" id="npLabel">♪ 配乐播放中</div>
+      <button class="ctrl-btn" id="npBtn" onclick="toggleBookMusic()">▐▐</button>
+    </div>
+    <div class="book-intro" id="bIntro" style="display:none">
+      <div class="book-intro-label">序 / 简介</div>
+      <div class="modal-body" id="bBody"></div>
+      <div class="modal-rule" style="margin-top:28px"></div>
+    </div>
+    <div class="ch-list" id="chList"></div>
+    <div class="ch-content" id="chContent">
+      <div class="ch-content-title" id="chContentTitle"></div>
+      <div class="modal-body" id="chBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Article Modal -->
+<div class="modal-bd" id="articleModal">
+  <button class="modal-close" onclick="closeModal('articleModal')">✕</button>
+  <div class="modal-inner">
+    <div class="modal-eyebrow" style="color:var(--pink)">Articles · 文章</div>
+    <div class="modal-title" id="aTitle"></div>
+    <div class="modal-sub" id="aSub"></div>
+    <div class="modal-rule"></div>
+    <div class="modal-body" id="aBody"></div>
+  </div>
+</div>
+
+<!-- Fashion Modal -->
+<div class="modal-bd" id="fashionModal">
+  <button class="modal-close" onclick="closeModal('fashionModal')">✕</button>
+  <div class="modal-inner">
+    <div class="modal-eyebrow" style="color:var(--blue-light)">Fashion Design · 服装设计</div>
+    <div class="modal-title" id="fTitle"></div>
+    <div class="modal-sub" id="fSub"></div>
+    <div class="fa-music-badge">♪ 此系列音乐自动播放 · 不可关闭</div>
+    <div class="modal-rule"></div>
+    <div class="fa-modal-grid" id="faGrid"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://rurnudwfqdsiealsgyhr.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1cm51ZHdmcWRzaWVhbHNneWhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc3MDUsImV4cCI6MjA5MDA1MzcwNX0.2SXChFVQuFDLb5s3ThZQpQWdZlLnjuxFvyouJKpPoB4';
+
+async function sb(table,query=''){
+  try{
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`,{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
+    });
+    if(!res.ok)return[];
+    return res.json();
+  }catch(e){return[];}
+}
+
+function buildParticles(){
+  const c=document.getElementById('particles');
+  const cols=['#d4a855','#e8a0b0','#c4a4c0','#7096b8','#b8cfe8','#f0d090'];
+  for(let i=0;i<38;i++){
+    const p=document.createElement('div');p.className='particle';
+    const sz=Math.random()*3.2+.7;
+    p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;background:${cols[Math.floor(Math.random()*cols.length)]};animation-duration:${10+Math.random()*14}s;animation-delay:${-Math.random()*28}s;`;
+    c.appendChild(p);
+  }
+}
+
+async function loadBooks(){
+  const books=await sb('books','?order=created_at.asc');
+  const el=document.getElementById('bookList');
+  if(!books.length){el.innerHTML='<div class="loading-col">暂无内容</div>';return;}
+  el.innerHTML='';
+  books.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='book-card';d.onclick=()=>openBook(b);
+    d.innerHTML=`<div class="book-thumb">${b.cover_url?`<img src="${b.cover_url}" alt="${b.title}">`:'BOOK'}</div>
+      <div class="book-meta">
+        <div class="book-name">《${b.title}》</div>
+        <div class="book-year">${b.year||''}</div>
+        <div class="book-tag">♪ 配乐 Playlist</div>
+      </div>`;
+    el.appendChild(d);
+  });
+}
+
+async function loadArticles(){
+  const arts=await sb('articles','?order=created_at.desc');
+  const el=document.getElementById('articleList');
+  if(!arts.length){el.innerHTML='<div class="loading-col">暂无内容</div>';return;}
+  el.innerHTML='';
+  arts.forEach(a=>{
+    const d=document.createElement('div');
+    d.className='article-card';d.onclick=()=>openArticle(a);
+    d.innerHTML=`<div class="art-cat">${a.category||''}</div>
+      <div class="art-title">${a.title}</div>
+      <div class="art-excerpt">${a.excerpt||''}</div>
+      <div class="art-date">${a.published_date||''}</div>`;
+    el.appendChild(d);
+  });
+}
+
+async function loadFashion(){
+  const cats=await sb('fashion','?order=created_at.asc');
+  const el=document.getElementById('fashionList');
+  if(!cats.length){el.innerHTML='<div class="loading-col">暂无内容</div>';return;}
+  el.innerHTML='';
+  for(const f of cats){
+    const items=await sb('fashion_items',`?fashion_id=eq.${f.id}&order=sort_order.asc`);
+    const d=document.createElement('div');d.className='fa-section';
+    const thumbs=items.slice(0,3).map((item,i)=>`
+      <div class="fa-item" data-fid="${f.id}">
+        ${item.image_url?`<img src="${item.image_url}" alt="${item.name}">`:''}
+        <div class="fa-item-icon">${f.icon||'✦'}</div>
+        <div class="fa-item-lbl">No.${i+1}</div>
+      </div>`).join('');
+    const placeholders=items.length===0?[0,1,2].map(i=>`
+      <div class="fa-item" data-fid="${f.id}">
+        <div class="fa-item-icon">${f.icon||'✦'}</div>
+        <div class="fa-item-lbl">No.${i+1}</div>
+      </div>`).join(''):thumbs;
+    d.innerHTML=`<div class="fa-cat-row">${f.category||''} · ${f.label||''}</div>
+      <div class="fa-grid">${placeholders}</div>`;
+    el.appendChild(d);
+    // store fashion data on items for click
+    d.querySelectorAll('.fa-item').forEach(item=>{
+      item._fashionData=f;
+      item.addEventListener('click',()=>openFashion(item._fashionData));
+    });
+  }
+}
+
+/* ── YOUTUBE ── */
+let ytLocked=false,ytPlaying=false;
+function ytSrc(ytId,listId){
+  if(listId)return`https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1&controls=1&modestbranding=1&rel=0`;
+  if(ytId)return`https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0`;
+  return'';
+}
+function loadYT(ytId,listId,label,locked){
+  ytLocked=!!locked;ytPlaying=true;
+  const src=ytSrc(ytId,listId);
+  document.getElementById('ytLbl').textContent=label||'♪';
+  document.getElementById('ytX')[locked?'setAttribute':'removeAttribute']('hidden','');
+  document.getElementById('gmInfo').textContent=label||'♪';
+  document.getElementById('gmWave').classList.remove('paused');
+  document.getElementById('gmBtn').disabled=locked;
+  document.getElementById('gmBtn').textContent='▐▐';
+  if(src){document.getElementById('ytIframe').src=src;document.getElementById('ytWrap').classList.add('open');}
+  else{document.getElementById('ytIframe').src='';document.getElementById('ytWrap').classList.remove('open');}
+}
+function _stopYT(){
+  document.getElementById('ytWrap').classList.remove('open');
+  document.getElementById('ytIframe').src='';
+  document.getElementById('gmWave').classList.add('paused');
+  document.getElementById('gmBtn').textContent='▶';
+  document.getElementById('gmBtn').disabled=false;
+  document.getElementById('gmInfo').textContent='选择作品以播放音乐';
+  ytPlaying=false;ytLocked=false;
+}
+function userHideYT(){if(!ytLocked)_stopYT();}
+function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
+
+/* ── BOOK ── */
+let bookMusicPlaying=false,currentBook=null,currentChapters=[];
+async function openBook(b){
+  currentBook=b;currentChapters=[];
+  document.getElementById('bTitle').textContent='《'+b.title+'》';
+  document.getElementById('bSub').textContent=b.subtitle||'';
+  const intro=document.getElementById('bIntro');
+  if(b.body&&b.body.trim()){document.getElementById('bBody').innerHTML=b.body;intro.style.display='block';}
+  else intro.style.display='none';
+  document.getElementById('chContent').classList.remove('visible');
+  document.getElementById('chBody').innerHTML='';
+  document.getElementById('chList').innerHTML='<div class="loading-col">Loading…</div>';
+  document.getElementById('npLabel').textContent='♪  '+(b.playlist_label||b.title+' — 配乐集');
+  document.getElementById('npWave').classList.remove('paused');
+  document.getElementById('npBtn').textContent='▐▐';
+  bookMusicPlaying=true;
+  _stopYT();
+  loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false);
+  document.getElementById('bookModal').classList.add('active');
+  currentChapters=await sb('chapters',`?book_id=eq.${b.id}&order=sort_order.asc`);
+  const cl=document.getElementById('chList');cl.innerHTML='';
+  if(currentChapters.length){
+    currentChapters.forEach((ch,i)=>{
+      const d=document.createElement('div');
+      d.className='ch-item';
+      d.innerHTML=`<span class="ch-num">${ch.num||''}</span><span class="ch-name">${ch.name||''}</span><span class="ch-arrow">›</span>`;
+      d.onclick=()=>selectChapter(i,d);
+      cl.appendChild(d);
+    });
+  } else cl.innerHTML='<div class="loading-col" style="opacity:.4">暂无章节</div>';
+}
+function selectChapter(idx,el){
+  if(el.classList.contains('active')){
+    el.classList.remove('active');
+    document.getElementById('chContent').classList.remove('visible');
+    return;
+  }
+  document.querySelectorAll('.ch-item').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const ch=currentChapters[idx];
+  document.getElementById('chContentTitle').textContent=(ch.num?ch.num+' · ':'')+ch.name;
+  document.getElementById('chBody').innerHTML=ch.body&&ch.body.trim()?ch.body:'<div class="ch-empty">本章内容尚未添加</div>';
+  const content=document.getElementById('chContent');
+  content.classList.add('visible');
+  setTimeout(()=>content.scrollIntoView({behavior:'smooth',block:'nearest'}),100);
+}
+function toggleBookMusic(){
+  if(bookMusicPlaying){
+    bookMusicPlaying=false;
+    document.getElementById('npWave').classList.add('paused');
+    document.getElementById('npBtn').textContent='▶';
+    _stopYT();
+  } else {
+    bookMusicPlaying=true;
+    document.getElementById('npWave').classList.remove('paused');
+    document.getElementById('npBtn').textContent='▐▐';
+    if(currentBook)loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false);
+  }
+}
+
+/* ── ARTICLE ── */
+function openArticle(a){
+  document.getElementById('aTitle').textContent=a.title;
+  document.getElementById('aSub').textContent=(a.category||'')+(a.published_date?' · '+a.published_date:'');
+  document.getElementById('aBody').innerHTML=a.body||'';
+  document.getElementById('articleModal').classList.add('active');
+  _stopYT();
+  document.getElementById('gmInfo').textContent=a.title;
+}
+
+/* ── FASHION ── */
+async function openFashion(f){
+  document.getElementById('fTitle').textContent=f.title||f.category;
+  document.getElementById('fSub').textContent=f.subtitle||'';
+  document.getElementById('faGrid').innerHTML='<div style="color:var(--text-muted);font-style:italic;font-size:13px;padding:20px 0;grid-column:1/-1;">Loading…</div>';
+  document.getElementById('fashionModal').classList.add('active');
+  loadYT(f.yt_id,f.playlist_id,f.yt_label||f.title+' — 背景音乐',true);
+  const items=await sb('fashion_items',`?fashion_id=eq.${f.id}&order=sort_order.asc`);
+  const grid=document.getElementById('faGrid');
+  grid.innerHTML=items.length
+    ?items.map(item=>`<div class="fa-modal-item" ${item.image_url?`onclick="openLightbox('${item.image_url}')" style="cursor:zoom-in"`:''}">
+        ${item.image_url?`<img src="${item.image_url}" alt="${item.name}">`:''}
+        <div class="fa-modal-icon">${f.icon||'✦'}</div>
+        <div class="fa-modal-name">${item.name||''}</div>
+      </div>`).join('')
+    :'<div style="color:var(--text-muted);font-style:italic;font-size:13px;padding:20px 0;grid-column:1/-1;">暂无作品</div>';
+}
+
+/* ── CLOSE ── */
+function closeModal(id){
+  document.getElementById(id).classList.remove('active');
+  if(id==='bookModal'){bookMusicPlaying=false;document.getElementById('npWave').classList.add('paused');document.getElementById('chContent').classList.remove('visible');_stopYT();}
+  if(id==='fashionModal'){_stopYT();}
+  if(id==='articleModal')document.getElementById('gmInfo').textContent='选择作品以播放音乐';
+}
+document.querySelectorAll('.modal-bd').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
+});
+
+function openLightbox(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src='';
+}
+
+function showNotice(msg){
+  const b=document.getElementById('noticeBar');b.textContent=msg;b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'),3000);
+}
+
+buildParticles();
+loadBooks();loadArticles();loadFashion();
+</script>
+</body>
+</html>

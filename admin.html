@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Portfolio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0e0820;color:#f0e8f0;min-height:100vh;}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+.login-box{background:rgba(40,22,74,.8);border:1px solid rgba(212,168,85,.25);border-radius:16px;padding:48px 40px;width:100%;max-width:360px;text-align:center;}
+.login-logo{font-family:'Georgia',serif;font-style:italic;font-size:22px;color:#d4a855;margin-bottom:8px;letter-spacing:3px;}
+.login-sub{font-size:12px;color:#c0a0c0;letter-spacing:2px;margin-bottom:32px;}
+.login-box input{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(212,168,85,.2);border-radius:8px;color:#f0e8f0;font-size:15px;outline:none;margin-bottom:14px;}
+.login-box input:focus{border-color:rgba(212,168,85,.5);}
+.login-btn{width:100%;padding:12px;background:rgba(212,168,85,.15);border:1px solid rgba(212,168,85,.4);border-radius:8px;color:#d4a855;font-size:14px;letter-spacing:2px;cursor:pointer;}
+.login-btn:hover{background:rgba(212,168,85,.25);}
+.login-err{color:#e8a0b0;font-size:12px;margin-top:10px;display:none;}
+#adminApp{display:none;min-height:100vh;}
+.admin-header{background:rgba(40,22,74,.95);border-bottom:1px solid rgba(212,168,85,.15);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.admin-logo{font-family:'Georgia',serif;font-style:italic;font-size:18px;color:#d4a855;letter-spacing:3px;}
+.admin-nav{display:flex;gap:4px;}
+.nav-btn{padding:7px 16px;border-radius:6px;border:none;background:transparent;color:#c0a0c0;cursor:pointer;font-size:13px;}
+.nav-btn:hover{background:rgba(255,255,255,.06);color:#f0e8f0;}
+.nav-btn.active{background:rgba(212,168,85,.15);color:#d4a855;}
+.admin-logout{padding:7px 14px;border-radius:6px;border:1px solid rgba(232,160,176,.25);background:transparent;color:#e8a0b0;cursor:pointer;font-size:12px;}
+.admin-body{max-width:920px;margin:0 auto;padding:32px 24px;}
+.section{display:none;}.section.active{display:block;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.section-title{font-size:20px;font-weight:300;letter-spacing:2px;color:#d4a855;}
+.add-btn{padding:9px 20px;background:rgba(212,168,85,.15);border:1px solid rgba(212,168,85,.35);border-radius:8px;color:#d4a855;cursor:pointer;font-size:13px;letter-spacing:1px;}
+.add-btn:hover{background:rgba(212,168,85,.25);}
+.item-card{background:rgba(40,22,74,.5);border:1px solid rgba(212,168,85,.12);border-radius:10px;padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;}
+.item-card-thumb{width:44px;height:60px;border-radius:4px;background:rgba(80,46,128,.5);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.2);}
+.item-card-thumb img{width:100%;height:100%;object-fit:cover;}
+.item-card-info{flex:1;min-width:0;}
+.item-card-title{font-size:15px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.item-card-sub{font-size:12px;color:#c0a0c0;}
+.item-card-actions{display:flex;gap:8px;flex-shrink:0;}
+.edit-btn{padding:6px 14px;border-radius:6px;border:1px solid rgba(184,207,232,.25);background:transparent;color:#b8cfe8;cursor:pointer;font-size:12px;}
+.edit-btn:hover{background:rgba(184,207,232,.1);}
+.del-btn{padding:6px 14px;border-radius:6px;border:1px solid rgba(232,160,176,.25);background:transparent;color:#e8a0b0;cursor:pointer;font-size:12px;}
+.del-btn:hover{background:rgba(232,160,176,.1);}
+.form-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(5,2,12,.92);backdrop-filter:blur(8px);overflow-y:auto;}
+.form-overlay.open{display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;}
+.form-box{background:#1a1032;border:1px solid rgba(212,168,85,.2);border-radius:14px;width:100%;max-width:700px;padding:32px 36px;}
+.form-title{font-size:18px;font-weight:300;color:#d4a855;letter-spacing:2px;margin-bottom:24px;}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:11px;letter-spacing:2px;color:#c0a0c0;text-transform:uppercase;margin-bottom:6px;}
+.form-input{width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(212,168,85,.18);border-radius:8px;color:#f0e8f0;font-size:14px;outline:none;font-family:inherit;}
+.form-input:focus{border-color:rgba(212,168,85,.45);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-actions{display:flex;gap:12px;margin-top:24px;justify-content:flex-end;}
+.save-btn{padding:10px 28px;background:rgba(212,168,85,.2);border:1px solid rgba(212,168,85,.4);border-radius:8px;color:#d4a855;cursor:pointer;font-size:14px;letter-spacing:1px;}
+.save-btn:hover{background:rgba(212,168,85,.3);}
+.cancel-btn{padding:10px 20px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#c0a0c0;cursor:pointer;font-size:14px;}
+/* RTE */
+.rte-wrap{border:1px solid rgba(212,168,85,.18);border-radius:8px;overflow:hidden;}
+.rte-toolbar{display:flex;flex-wrap:wrap;gap:2px;padding:8px 10px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(212,168,85,.12);}
+.rte-btn{padding:5px 10px;background:transparent;border:1px solid transparent;border-radius:5px;color:#c0a0c0;cursor:pointer;font-size:13px;line-height:1;}
+.rte-btn:hover{background:rgba(212,168,85,.12);color:#d4a855;}
+.rte-sep{width:1px;background:rgba(212,168,85,.15);margin:0 4px;align-self:stretch;}
+.rte-body{min-height:160px;padding:14px 16px;background:rgba(255,255,255,.04);color:#f0e8f0;font-size:15px;line-height:1.9;outline:none;}
+.rte-body:focus{background:rgba(255,255,255,.06);}
+.rte-body p{margin-bottom:0.8em;}
+.rte-body h2{font-size:1.2em;font-weight:500;margin-bottom:0.5em;color:#d4a855;}
+.rte-body blockquote{border-left:3px solid rgba(212,168,85,.4);padding-left:14px;color:#c0a0c0;font-style:italic;margin:0.8em 0;}
+.rte-body ul,.rte-body ol{padding-left:20px;margin-bottom:0.8em;}
+/* image upload */
+.img-upload-area{border:1px dashed rgba(212,168,85,.25);border-radius:8px;padding:20px;text-align:center;cursor:pointer;position:relative;}
+.img-upload-area:hover{border-color:rgba(212,168,85,.5);background:rgba(212,168,85,.04);}
+.img-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.img-upload-label{font-size:12px;color:#c0a0c0;letter-spacing:1px;}
+.img-preview{width:80px;height:110px;object-fit:cover;border-radius:4px;margin-top:10px;}
+/* chapters */
+.ch-block{background:rgba(255,255,255,.03);border:1px solid rgba(212,168,85,.1);border-radius:8px;padding:14px;margin-bottom:12px;}
+.ch-block-header{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.ch-block-header input{flex:1;padding:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(212,168,85,.15);border-radius:6px;color:#f0e8f0;font-size:13px;outline:none;}
+.ch-block-header input:focus{border-color:rgba(212,168,85,.4);}
+.ch-del{background:none;border:none;color:#e8a0b0;cursor:pointer;font-size:18px;padding:4px;line-height:1;}
+.ch-body-label{font-size:10px;letter-spacing:2px;color:#c0a0c0;text-transform:uppercase;margin-bottom:6px;}
+.add-ch-btn{padding:8px 16px;background:transparent;border:1px dashed rgba(212,168,85,.2);border-radius:6px;color:#d4a855;cursor:pointer;font-size:12px;letter-spacing:1px;margin-top:4px;}
+.add-ch-btn:hover{background:rgba(212,168,85,.08);}
+/* fashion items */
+.fi-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;background:rgba(255,255,255,.03);border-radius:8px;padding:10px 12px;}
+.fi-thumb{width:36px;height:50px;border-radius:3px;object-fit:cover;background:rgba(80,46,128,.4);flex-shrink:0;}
+.fi-name{flex:1;padding:7px 10px;background:rgba(255,255,255,.05);border:1px solid rgba(112,150,184,.15);border-radius:6px;color:#f0e8f0;font-size:13px;outline:none;}
+.fi-upload{padding:7px 12px;background:rgba(112,150,184,.1);border:1px solid rgba(112,150,184,.25);border-radius:6px;color:#b8cfe8;cursor:pointer;font-size:11px;position:relative;white-space:nowrap;}
+.fi-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.fi-del{background:none;border:none;color:#e8a0b0;cursor:pointer;font-size:16px;padding:4px;}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(40,22,74,.97);border:1px solid rgba(212,168,85,.3);border-radius:8px;padding:12px 24px;font-size:13px;color:#d4a855;letter-spacing:1px;transition:transform .3s;z-index:999;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.empty-state{text-align:center;padding:48px 20px;color:#c0a0c0;font-style:italic;font-size:14px;}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Porphyrogenitusee</div>
+    <div class="login-sub">Admin Portal</div>
+    <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Enter</button>
+    <div class="login-err" id="loginErr">密码错误</div>
+  </div>
+</div>
+
+<div id="adminApp">
+  <div class="admin-header">
+    <div class="admin-logo">Portfolio Admin</div>
+    <div class="admin-nav">
+      <button class="nav-btn active" onclick="switchTab('books',this)">书籍</button>
+      <button class="nav-btn" onclick="switchTab('articles',this)">文章</button>
+      <button class="nav-btn" onclick="switchTab('fashion',this)">服装</button>
+    </div>
+    <button class="admin-logout" onclick="doLogout()">退出</button>
+  </div>
+  <div class="admin-body">
+    <div class="section active" id="sec-books">
+      <div class="section-header">
+        <div class="section-title">书籍管理</div>
+        <button class="add-btn" onclick="openBookForm()">＋ 添加书籍</button>
+      </div>
+      <div id="bookCards"></div>
+    </div>
+    <div class="section" id="sec-articles">
+      <div class="section-header">
+        <div class="section-title">文章管理</div>
+        <button class="add-btn" onclick="openArticleForm()">＋ 添加文章</button>
+      </div>
+      <div id="articleCards"></div>
+    </div>
+    <div class="section" id="sec-fashion">
+      <div class="section-header">
+        <div class="section-title">服装系列管理</div>
+        <button class="add-btn" onclick="openFashionForm()">＋ 添加系列</button>
+      </div>
+      <div id="fashionCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOK FORM -->
+<div class="form-overlay" id="bookForm">
+  <div class="form-box">
+    <div class="form-title" id="bookFormTitle">添加书籍</div>
+    <input type="hidden" id="bfId">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">书名</label>
+        <input class="form-input" id="bfTitle" placeholder="书名">
+      </div>
+      <div class="form-group">
+        <label class="form-label">年份</label>
+        <input class="form-input" id="bfYear" placeholder="2024">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">副标题</label>
+      <input class="form-input" id="bfSubtitle" placeholder="例：长篇小说 · 关于告别与重生">
+    </div>
+    <div class="form-group">
+      <label class="form-label">YouTube Playlist ID</label>
+      <input class="form-input" id="bfPlaylist" placeholder="playlist?list= 后面的字串">
+    </div>
+    <div class="form-group">
+      <label class="form-label">配乐标签名称</label>
+      <input class="form-input" id="bfPlaylistLabel" placeholder="例：在黄昏之前 — 配乐集">
+    </div>
+    <div class="form-group">
+      <label class="form-label">封面图片</label>
+      <div class="img-upload-area">
+        <input type="file" accept="image/*" onchange="previewCover(this)">
+        <div class="img-upload-label">点击上传封面图片</div>
+        <img id="bfCoverPreview" class="img-preview" style="display:none">
+      </div>
+      <input type="hidden" id="bfCoverUrl">
+    </div>
+    <div class="form-group">
+      <label class="form-label">序 / 简介（可选）</label>
+      <div class="rte-wrap">
+        <div class="rte-toolbar">
+          <button class="rte-btn" onclick="rte('bold')"><b>B</b></button>
+          <button class="rte-btn" onclick="rte('italic')"><i>I</i></button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rte('formatBlock','p')">¶</button>
+          <button class="rte-btn" onclick="rte('formatBlock','blockquote')">"</button>
+          <button class="rte-btn" onclick="rte('insertUnorderedList')">• 列表</button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rte('removeFormat')">清除</button>
+        </div>
+        <div class="rte-body" id="bfBody" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">章节（每章可填正文）</label>
+      <div id="bfChapters"></div>
+      <button class="add-ch-btn" onclick="addChapterRow()">＋ 添加章节</button>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" onclick="closeForm('bookForm')">取消</button>
+      <button class="save-btn" onclick="saveBook()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ARTICLE FORM -->
+<div class="form-overlay" id="articleForm">
+  <div class="form-box">
+    <div class="form-title" id="artFormTitle">添加文章</div>
+    <input type="hidden" id="afId">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">标题</label>
+        <input class="form-input" id="afTitle" placeholder="文章标题">
+      </div>
+      <div class="form-group">
+        <label class="form-label">分类</label>
+        <input class="form-input" id="afCat" placeholder="随笔 / 诗 / 旅行…">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">一句简介</label>
+      <input class="form-input" id="afExcerpt" placeholder="显示在首页列表的一行摘要">
+    </div>
+    <div class="form-group">
+      <label class="form-label">发布日期</label>
+      <input class="form-input" id="afDate" placeholder="例：2024 · 11">
+    </div>
+    <div class="form-group">
+      <label class="form-label">正文</label>
+      <div class="rte-wrap">
+        <div class="rte-toolbar">
+          <button class="rte-btn" onclick="rteA('bold')"><b>B</b></button>
+          <button class="rte-btn" onclick="rteA('italic')"><i>I</i></button>
+          <button class="rte-btn" onclick="rteA('underline')"><u>U</u></button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rteA('formatBlock','h2')">H2</button>
+          <button class="rte-btn" onclick="rteA('formatBlock','h3')">H3</button>
+          <button class="rte-btn" onclick="rteA('formatBlock','p')">¶</button>
+          <button class="rte-btn" onclick="rteA('formatBlock','blockquote')">"</button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rteA('insertUnorderedList')">• 列表</button>
+          <button class="rte-btn" onclick="rteA('insertOrderedList')">1. 列表</button>
+          <div class="rte-sep"></div>
+          <button class="rte-btn" onclick="rteA('removeFormat')">清除</button>
+        </div>
+        <div class="rte-body" id="afBody" contenteditable="true" spellcheck="false"></div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" onclick="closeForm('articleForm')">取消</button>
+      <button class="save-btn" onclick="saveArticle()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- FASHION FORM -->
+<div class="form-overlay" id="fashionForm">
+  <div class="form-box">
+    <div class="form-title" id="faFormTitle">添加服装系列</div>
+    <input type="hidden" id="ffId">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">系列英文名</label>
+        <input class="form-input" id="ffCat" placeholder="Evening">
+      </div>
+      <div class="form-group">
+        <label class="form-label">系列中文名</label>
+        <input class="form-input" id="ffLabel" placeholder="晚装">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">标题</label>
+        <input class="form-input" id="ffTitle" placeholder="Evening Collection">
+      </div>
+      <div class="form-group">
+        <label class="form-label">图标</label>
+        <input class="form-input" id="ffIcon" placeholder="✦ ◆ ◇ ○">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">副标题</label>
+      <input class="form-input" id="ffSub" placeholder="晚装系列 · 以夕阳为灵感">
+    </div>
+    <div class="form-group">
+      <label class="form-label">YouTube 视频 ID（单曲）</label>
+      <input class="form-input" id="ffYtId" placeholder="watch?v= 后面的字串">
+    </div>
+    <div class="form-group">
+      <label class="form-label">YouTube Playlist ID（优先）</label>
+      <input class="form-input" id="ffListId" placeholder="playlist?list= 后面的字串">
+    </div>
+    <div class="form-group">
+      <label class="form-label">音乐标签</label>
+      <input class="form-input" id="ffYtLabel" placeholder="Evening — 背景音乐">
+    </div>
+    <div class="form-group">
+      <label class="form-label">服装作品</label>
+      <div id="ffItems"></div>
+      <button class="add-ch-btn" onclick="addFashionItem()">＋ 添加作品</button>
+    </div>
+    <div class="form-actions">
+      <button class="cancel-btn" onclick="closeForm('fashionForm')">取消</button>
+      <button class="save-btn" onclick="saveFashion()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://rurnudwfqdsiealsgyhr.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1cm51ZHdmcWRzaWVhbHNneWhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0Nzc3MDUsImV4cCI6MjA5MDA1MzcwNX0.2SXChFVQuFDLb5s3ThZQpQWdZlLnjuxFvyouJKpPoB4';
+const BUCKET='portfolio-images';
+const ADMIN_PASSWORD='porphyrogenitusee2024'; /* ← 改这里设置密码 */
+
+/* ── AUTH ── */
+function doLogin(){
+  if(document.getElementById('pwInput').value===ADMIN_PASSWORD){
+    sessionStorage.setItem('admin','1');
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('adminApp').style.display='block';
+    loadAll();
+  } else document.getElementById('loginErr').style.display='block';
+}
+function doLogout(){sessionStorage.removeItem('admin');location.reload();}
+if(sessionStorage.getItem('admin')==='1'){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminApp').style.display='block';
+}
+
+/* ── SUPABASE ── */
+const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+async function sbGet(t,q=''){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}${q}`,{headers:H});return r.json();}
+async function sbPost(t,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}`,{method:'POST',headers:H,body:JSON.stringify(b)});return r.json();}
+async function sbPatch(t,id,b){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:H,body:JSON.stringify(b)});return r.json();}
+async function sbDelete(t,id){await fetch(`${SUPABASE_URL}/rest/v1/${t}?id=eq.${id}`,{method:'DELETE',headers:H});}
+async function sbDeleteWhere(t,col,val){await fetch(`${SUPABASE_URL}/rest/v1/${t}?${col}=eq.${val}`,{method:'DELETE',headers:H});}
+
+/* ── IMAGE UPLOAD ── */
+async function uploadImage(file,folder){
+  const ext=file.name.split('.').pop();
+  const path=`${folder}/${Date.now()}.${ext}`;
+  const r=await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`,{
+    method:'POST',
+    headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':file.type},
+    body:file
+  });
+  return r.ok?`${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${path}`:null;
+}
+
+/* ── CLEAN HTML ── */
+function cleanHTML(html){
+  const tmp=document.createElement('div');
+  tmp.innerHTML=html;
+  tmp.querySelectorAll('*').forEach(el=>{
+    el.removeAttribute('style');
+    el.removeAttribute('class');
+    el.removeAttribute('id');
+    el.removeAttribute('dir');
+    el.removeAttribute('align');
+  });
+  return tmp.innerHTML.trim();
+}
+
+/* ── RTE ── */
+function rte(cmd,val){document.getElementById('bfBody').focus();document.execCommand(cmd,false,val||null);}
+function rteA(cmd,val){document.getElementById('afBody').focus();document.execCommand(cmd,false,val||null);}
+function execOnTarget(btn,cmd,val){
+  const editor=btn.closest('.rte-wrap').querySelector('.rte-body');
+  editor.focus();document.execCommand(cmd,false,val||null);
+}
+
+/* ── TAB ── */
+function switchTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  btn.classList.add('active');
+}
+function loadAll(){loadBooks();loadArticles();loadFashion();}
+
+/* ── TOAST ── */
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+/* ── FORM ── */
+function openForm(id){document.getElementById(id).classList.add('open');}
+function closeForm(id){document.getElementById(id).classList.remove('open');}
+
+/* ════ BOOKS ════ */
+let allBooks=[];
+async function loadBooks(){
+  allBooks=await sbGet('books','?order=created_at.asc');
+  const el=document.getElementById('bookCards');
+  if(!allBooks.length){el.innerHTML='<div class="empty-state">还没有书籍</div>';return;}
+  el.innerHTML='';
+  allBooks.forEach(b=>{
+    el.innerHTML+=`<div class="item-card">
+      <div class="item-card-thumb">${b.cover_url?`<img src="${b.cover_url}">`:'封面'}</div>
+      <div class="item-card-info">
+        <div class="item-card-title">《${b.title}》</div>
+        <div class="item-card-sub">${b.year||''} ${b.subtitle?'· '+b.subtitle:''}</div>
+      </div>
+      <div class="item-card-actions">
+        <button class="edit-btn" onclick='editBook("${b.id}")'>编辑</button>
+        <button class="del-btn" onclick='deleteBook("${b.id}")'>删除</button>
+      </div>
+    </div>`;
+  });
+}
+
+function openBookForm(book){
+  document.getElementById('bookFormTitle').textContent=book?'编辑书籍':'添加书籍';
+  document.getElementById('bfId').value=book?.id||'';
+  document.getElementById('bfTitle').value=book?.title||'';
+  document.getElementById('bfYear').value=book?.year||'';
+  document.getElementById('bfSubtitle').value=book?.subtitle||'';
+  document.getElementById('bfPlaylist').value=book?.playlist_id||'';
+  document.getElementById('bfPlaylistLabel').value=book?.playlist_label||'';
+  document.getElementById('bfCoverUrl').value=book?.cover_url||'';
+  const prev=document.getElementById('bfCoverPreview');
+  if(book?.cover_url){prev.src=book.cover_url;prev.style.display='block';}
+  else prev.style.display='none';
+  document.getElementById('bfBody').innerHTML=book?.body||'';
+  renderChapters(book?.id);
+  openForm('bookForm');
+}
+
+async function renderChapters(bookId){
+  const el=document.getElementById('bfChapters');el.innerHTML='';
+  if(bookId){
+    const chs=await sbGet('chapters',`?book_id=eq.${bookId}&order=sort_order.asc`);
+    chs.forEach(c=>addChapterRow(c));
+  }
+}
+
+function addChapterRow(ch){
+  const el=document.getElementById('bfChapters');
+  const div=document.createElement('div');
+  div.className='ch-block';
+  div.innerHTML=`
+    <div class="ch-block-header">
+      <input placeholder="章节编号 例：第一章" value="${ch?.num||''}">
+      <input placeholder="章节名称" value="${ch?.name||''}" style="flex:2">
+      <button class="ch-del" onclick="this.closest('.ch-block').remove()">×</button>
+    </div>
+    <div class="ch-body-label">本章正文</div>
+    <div class="rte-wrap">
+      <div class="rte-toolbar" style="padding:5px 8px;">
+        <button class="rte-btn" onclick="execOnTarget(this,'bold')"><b>B</b></button>
+        <button class="rte-btn" onclick="execOnTarget(this,'italic')"><i>I</i></button>
+        <button class="rte-btn" onclick="execOnTarget(this,'underline')"><u>U</u></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','p')">¶</button>
+        <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','blockquote')">"</button>
+        <button class="rte-btn" onclick="execOnTarget(this,'insertUnorderedList')">• 列表</button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="execOnTarget(this,'removeFormat')">清除</button>
+      </div>
+      <div class="rte-body ch-body-editor" contenteditable="true" spellcheck="false" style="min-height:120px;font-size:13px;">${ch?.body||''}</div>
+    </div>`;
+  el.appendChild(div);
+}
+
+async function previewCover(input){
+  const file=input.files[0];if(!file)return;
+  toast('上传中…');
+  const url=await uploadImage(file,'covers');
+  if(url){
+    document.getElementById('bfCoverUrl').value=url;
+    const prev=document.getElementById('bfCoverPreview');
+    prev.src=url;prev.style.display='block';
+    toast('封面上传成功 ✓');
+  } else toast('上传失败');
+}
+
+async function saveBook(){
+  const id=document.getElementById('bfId').value;
+  const data={
+    title:document.getElementById('bfTitle').value,
+    year:document.getElementById('bfYear').value,
+    subtitle:document.getElementById('bfSubtitle').value,
+    playlist_id:document.getElementById('bfPlaylist').value,
+    playlist_label:document.getElementById('bfPlaylistLabel').value,
+    body:cleanHTML(document.getElementById('bfBody').innerHTML),
+    cover_url:document.getElementById('bfCoverUrl').value,
+  };
+  if(!data.title){toast('请填写书名');return;}
+  let bookId=id;
+  if(id)await sbPatch('books',id,data);
+  else{const r=await sbPost('books',data);bookId=r[0]?.id;}
+  if(bookId){
+    await sbDeleteWhere('chapters','book_id',bookId);
+    const blocks=document.querySelectorAll('#bfChapters .ch-block');
+    let i=0;
+    for(const block of blocks){
+      const inputs=block.querySelectorAll('input');
+      const num=inputs[0].value,name=inputs[1].value;
+      const bodyEl=block.querySelector('.ch-body-editor');
+      const body=cleanHTML(bodyEl?bodyEl.innerHTML:'');
+      if(num||name)await sbPost('chapters',{book_id:bookId,num,name,body,sort_order:i++});
+    }
+  }
+  closeForm('bookForm');loadBooks();toast('书籍已保存 ✓');
+}
+
+function editBook(id){openBookForm(allBooks.find(x=>x.id===id));}
+async function deleteBook(id){
+  if(!confirm('确认删除？'))return;
+  await sbDelete('books',id);loadBooks();toast('已删除');
+}
+
+/* ════ ARTICLES ════ */
+let allArticles=[];
+async function loadArticles(){
+  allArticles=await sbGet('articles','?order=created_at.desc');
+  const el=document.getElementById('articleCards');
+  if(!allArticles.length){el.innerHTML='<div class="empty-state">还没有文章</div>';return;}
+  el.innerHTML='';
+  allArticles.forEach(a=>{
+    el.innerHTML+=`<div class="item-card">
+      <div class="item-card-info">
+        <div class="item-card-title">${a.title}</div>
+        <div class="item-card-sub">${a.category||''} ${a.published_date?'· '+a.published_date:''}</div>
+      </div>
+      <div class="item-card-actions">
+        <button class="edit-btn" onclick='editArticle("${a.id}")'>编辑</button>
+        <button class="del-btn" onclick='deleteArticle("${a.id}")'>删除</button>
+      </div>
+    </div>`;
+  });
+}
+
+function openArticleForm(art){
+  document.getElementById('artFormTitle').textContent=art?'编辑文章':'添加文章';
+  document.getElementById('afId').value=art?.id||'';
+  document.getElementById('afTitle').value=art?.title||'';
+  document.getElementById('afCat').value=art?.category||'';
+  document.getElementById('afExcerpt').value=art?.excerpt||'';
+  document.getElementById('afDate').value=art?.published_date||'';
+  document.getElementById('afBody').innerHTML=art?.body||'';
+  openForm('articleForm');
+}
+
+async function saveArticle(){
+  const id=document.getElementById('afId').value;
+  const data={
+    title:document.getElementById('afTitle').value,
+    category:document.getElementById('afCat').value,
+    excerpt:document.getElementById('afExcerpt').value,
+    published_date:document.getElementById('afDate').value,
+    body:cleanHTML(document.getElementById('afBody').innerHTML),
+  };
+  if(!data.title){toast('请填写标题');return;}
+  if(id)await sbPatch('articles',id,data);
+  else await sbPost('articles',data);
+  closeForm('articleForm');loadArticles();toast('文章已保存 ✓');
+}
+
+function editArticle(id){openArticleForm(allArticles.find(x=>x.id===id));}
+async function deleteArticle(id){
+  if(!confirm('确认删除？'))return;
+  await sbDelete('articles',id);loadArticles();toast('已删除');
+}
+
+/* ════ FASHION ════ */
+let allFashion=[];
+async function loadFashion(){
+  allFashion=await sbGet('fashion','?order=created_at.asc');
+  const el=document.getElementById('fashionCards');
+  if(!allFashion.length){el.innerHTML='<div class="empty-state">还没有服装系列</div>';return;}
+  el.innerHTML='';
+  allFashion.forEach(f=>{
+    el.innerHTML+=`<div class="item-card">
+      <div class="item-card-info">
+        <div class="item-card-title">${f.icon||'✦'} ${f.title||f.category}</div>
+        <div class="item-card-sub">${f.category||''} · ${f.label||''}</div>
+      </div>
+      <div class="item-card-actions">
+        <button class="edit-btn" onclick='editFashion("${f.id}")'>编辑</button>
+        <button class="del-btn" onclick='deleteFashion("${f.id}")'>删除</button>
+      </div>
+    </div>`;
+  });
+}
+
+async function openFashionForm(fa){
+  document.getElementById('faFormTitle').textContent=fa?'编辑服装系列':'添加服装系列';
+  document.getElementById('ffId').value=fa?.id||'';
+  document.getElementById('ffCat').value=fa?.category||'';
+  document.getElementById('ffLabel').value=fa?.label||'';
+  document.getElementById('ffTitle').value=fa?.title||'';
+  document.getElementById('ffIcon').value=fa?.icon||'✦';
+  document.getElementById('ffSub').value=fa?.subtitle||'';
+  document.getElementById('ffYtId').value=fa?.yt_id||'';
+  document.getElementById('ffListId').value=fa?.playlist_id||'';
+  document.getElementById('ffYtLabel').value=fa?.yt_label||'';
+  const itemEl=document.getElementById('ffItems');itemEl.innerHTML='';
+  if(fa?.id){
+    const items=await sbGet('fashion_items',`?fashion_id=eq.${fa.id}&order=sort_order.asc`);
+    items.forEach(item=>addFashionItem(item));
+  }
+  openForm('fashionForm');
+}
+
+function addFashionItem(item){
+  const el=document.getElementById('ffItems');
+  const div=document.createElement('div');div.className='fi-row';
+  div.innerHTML=`
+    ${item?.image_url?`<img class="fi-thumb" src="${item.image_url}">`:`<div class="fi-thumb"></div>`}
+    <input class="fi-name" placeholder="作品名称" value="${item?.name||''}">
+    <label class="fi-upload">上传图片<input type="file" accept="image/*" onchange="uploadFiImg(this)"></label>
+    <input type="hidden" class="fi-img-url" value="${item?.image_url||''}">
+    <button class="fi-del" onclick="this.parentNode.remove()">×</button>`;
+  el.appendChild(div);
+}
+
+async function uploadFiImg(input){
+  const file=input.files[0];if(!file)return;
+  toast('上传中…');
+  const url=await uploadImage(file,'fashion');
+  if(url){
+    const row=input.closest('.fi-row');
+    row.querySelector('.fi-img-url').value=url;
+    const old=row.querySelector('.fi-thumb');
+    const img=document.createElement('img');img.className='fi-thumb';img.src=url;
+    old.replaceWith(img);
+    toast('图片上传成功 ✓');
+  } else toast('上传失败');
+}
+
+async function saveFashion(){
+  const id=document.getElementById('ffId').value;
+  const data={
+    category:document.getElementById('ffCat').value,
+    label:document.getElementById('ffLabel').value,
+    title:document.getElementById('ffTitle').value,
+    icon:document.getElementById('ffIcon').value||'✦',
+    subtitle:document.getElementById('ffSub').value,
+    yt_id:document.getElementById('ffYtId').value,
+    playlist_id:document.getElementById('ffListId').value,
+    yt_label:document.getElementById('ffYtLabel').value,
+  };
+  if(!data.category){toast('请填写系列名称');return;}
+  let faId=id;
+  if(id)await sbPatch('fashion',id,data);
+  else{const r=await sbPost('fashion',data);faId=r[0]?.id;}
+  if(faId){
+    await sbDeleteWhere('fashion_items','fashion_id',faId);
+    const rows=document.querySelectorAll('#ffItems .fi-row');
+    let i=0;
+    for(const row of rows){
+      const name=row.querySelector('.fi-name').value;
+      const image_url=row.querySelector('.fi-img-url').value;
+      if(name||image_url)await sbPost('fashion_items',{fashion_id:faId,name,image_url,sort_order:i++});
+    }
+  }
+  closeForm('fashionForm');loadFashion();toast('系列已保存 ✓');
+}
+
+async function editFashion(id){openFashionForm(allFashion.find(x=>x.id===id));}
+async function deleteFashion(id){
+  if(!confirm('确认删除？'))return;
+  await sbDelete('fashion',id);loadFashion();toast('已删除');
+}
+
+if(sessionStorage.getItem('admin')==='1') loadAll();
+</script>
+</body>
+</html>
