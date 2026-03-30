@@ -394,9 +394,9 @@ function userHideYT(){if(!ytLocked)_stopYT();}
 function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
 
 /* ── BOOK ── */
-let bookMusicPlaying=false,currentBook=null,currentChapters=[];
+let bookMusicPlaying=false,currentBook=null,currentChapters=[],progressTimer=null;
 
-// 获取书籍的播放进度
+// 获取书籍的播放进度（返回曲目索引）
 function getBookProgress(bookId){
   try{
     const saved=localStorage.getItem('book_music_'+bookId);
@@ -404,11 +404,35 @@ function getBookProgress(bookId){
   }catch(e){return 1;}
 }
 
-// 保存书籍的播放进度
+// 保存书籍的播放进度（曲目索引）
 function saveBookProgress(bookId,index){
   try{
     localStorage.setItem('book_music_'+bookId,index);
   }catch(e){}
+}
+
+// 开始进度自动保存定时器
+function startProgressTimer(bookId,startIndex){
+  stopProgressTimer(); // 清除之前的定时器
+  let currentIndex=startIndex;
+  
+  // 每2分钟保存一次进度（相当于约半首歌，4.5分钟一首）
+  progressTimer=setInterval(()=>{
+    if(bookMusicPlaying&&currentBook&&currentBook.id===bookId){
+      // 每2分钟，进度增加 2/4.5 ≈ 0.44首，累积到约半首时进入下一首
+      currentIndex+=0.5; // 保守估计，2分钟算半首
+      const newIndex=Math.floor(currentIndex);
+      saveBookProgress(bookId,newIndex);
+    }
+  },120000); // 120000ms = 2分钟
+}
+
+// 停止进度保存定时器
+function stopProgressTimer(){
+  if(progressTimer){
+    clearInterval(progressTimer);
+    progressTimer=null;
+  }
 }
 
 // 重新开始播放
@@ -419,6 +443,7 @@ function restartBookMusic(){
   document.getElementById('npWave').classList.remove('paused');
   document.getElementById('npBtn').textContent='▐▐';
   loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,1);
+  startProgressTimer(currentBook.id,1);
 }
 
 async function openBook(b){
@@ -441,18 +466,8 @@ async function openBook(b){
   const startIndex=getBookProgress(b.id);
   loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false,startIndex);
   
-  // 监听iframe消息以记录播放进度（YouTube API会发送消息）
-  window.addEventListener('message',function bookProgressListener(e){
-    if(e.origin!=='https://www.youtube.com')return;
-    try{
-      const data=JSON.parse(e.data);
-      if(data.event==='infoDelivery'&&data.info&&data.info.currentTime!==undefined&&currentBook){
-        // 简单估算：假设每首歌平均3分钟，根据播放时间估算当前曲目
-        const estimatedIndex=Math.floor(data.info.currentTime/180)+1;
-        saveBookProgress(currentBook.id,estimatedIndex);
-      }
-    }catch(err){}
-  });
+  // 启动进度自动保存定时器
+  startProgressTimer(b.id,startIndex);
   
   document.getElementById('bookModal').classList.add('active');
   currentChapters=await sb('chapters',`?book_id=eq.${b.id}&order=sort_order.asc`);
@@ -487,6 +502,7 @@ function toggleBookMusic(){
     bookMusicPlaying=false;
     document.getElementById('npWave').classList.add('paused');
     document.getElementById('npBtn').textContent='▶';
+    stopProgressTimer(); // 暂停时停止计时
     _stopYT();
   } else {
     bookMusicPlaying=true;
@@ -495,6 +511,7 @@ function toggleBookMusic(){
     if(currentBook){
       const startIndex=getBookProgress(currentBook.id);
       loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,startIndex);
+      startProgressTimer(currentBook.id,startIndex); // 继续播放时重新启动计时
     }
   }
 }
@@ -530,7 +547,13 @@ async function openFashion(f){
 /* ── CLOSE ── */
 function closeModal(id){
   document.getElementById(id).classList.remove('active');
-  if(id==='bookModal'){bookMusicPlaying=false;document.getElementById('npWave').classList.add('paused');document.getElementById('chContent').classList.remove('visible');_stopYT();}
+  if(id==='bookModal'){
+    bookMusicPlaying=false;
+    document.getElementById('npWave').classList.add('paused');
+    document.getElementById('chContent').classList.remove('visible');
+    stopProgressTimer(); // 关闭书籍时停止进度计时器
+    _stopYT();
+  }
   if(id==='fashionModal'){_stopYT();}
   if(id==='articleModal')document.getElementById('gmInfo').textContent='选择作品以播放音乐';
 }
