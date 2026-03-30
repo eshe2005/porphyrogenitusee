@@ -232,6 +232,7 @@ document.addEventListener('keydown',e=>{
         <span style="background:var(--gold)"></span>
       </div>
       <div class="np-label" id="npLabel">♪ 配乐播放中</div>
+      <button class="ctrl-btn" id="npRestart" onclick="restartBookMusic()" title="重新开始">↻</button>
       <button class="ctrl-btn" id="npBtn" onclick="toggleBookMusic()">▐▐</button>
     </div>
     <div class="book-intro" id="bIntro" style="display:none">
@@ -363,14 +364,14 @@ async function loadFashion(){
 
 /* ── YOUTUBE ── */
 let ytLocked=false,ytPlaying=false;
-function ytSrc(ytId,listId){
-  if(listId)return`https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1&controls=1&modestbranding=1&rel=0`;
-  if(ytId)return`https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0`;
+function ytSrc(ytId,listId,index=0){
+  if(listId)return`https://www.youtube.com/embed/videoseries?list=${listId}&index=${index}&autoplay=1&controls=1&modestbranding=1&rel=0&enablejsapi=1`;
+  if(ytId)return`https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0&enablejsapi=1`;
   return'';
 }
-function loadYT(ytId,listId,label,locked){
+function loadYT(ytId,listId,label,locked,index=0){
   ytLocked=!!locked;ytPlaying=true;
-  const src=ytSrc(ytId,listId);
+  const src=ytSrc(ytId,listId,index);
   document.getElementById('ytLbl').textContent=label||'♪';
   document.getElementById('ytX')[locked?'setAttribute':'removeAttribute']('hidden','');
   document.getElementById('gmInfo').textContent=label||'♪';
@@ -394,6 +395,32 @@ function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
 
 /* ── BOOK ── */
 let bookMusicPlaying=false,currentBook=null,currentChapters=[];
+
+// 获取书籍的播放进度
+function getBookProgress(bookId){
+  try{
+    const saved=localStorage.getItem('book_music_'+bookId);
+    return saved?parseInt(saved):1;
+  }catch(e){return 1;}
+}
+
+// 保存书籍的播放进度
+function saveBookProgress(bookId,index){
+  try{
+    localStorage.setItem('book_music_'+bookId,index);
+  }catch(e){}
+}
+
+// 重新开始播放
+function restartBookMusic(){
+  if(!currentBook||!currentBook.playlist_id)return;
+  saveBookProgress(currentBook.id,1);
+  bookMusicPlaying=true;
+  document.getElementById('npWave').classList.remove('paused');
+  document.getElementById('npBtn').textContent='▐▐';
+  loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,1);
+}
+
 async function openBook(b){
   currentBook=b;currentChapters=[];
   document.getElementById('bTitle').textContent='《'+b.title+'》';
@@ -409,7 +436,24 @@ async function openBook(b){
   document.getElementById('npBtn').textContent='▐▐';
   bookMusicPlaying=true;
   _stopYT();
-  loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false);
+  
+  // 获取上次播放进度，如果没有则从第1首开始
+  const startIndex=getBookProgress(b.id);
+  loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false,startIndex);
+  
+  // 监听iframe消息以记录播放进度（YouTube API会发送消息）
+  window.addEventListener('message',function bookProgressListener(e){
+    if(e.origin!=='https://www.youtube.com')return;
+    try{
+      const data=JSON.parse(e.data);
+      if(data.event==='infoDelivery'&&data.info&&data.info.currentTime!==undefined&&currentBook){
+        // 简单估算：假设每首歌平均3分钟，根据播放时间估算当前曲目
+        const estimatedIndex=Math.floor(data.info.currentTime/180)+1;
+        saveBookProgress(currentBook.id,estimatedIndex);
+      }
+    }catch(err){}
+  });
+  
   document.getElementById('bookModal').classList.add('active');
   currentChapters=await sb('chapters',`?book_id=eq.${b.id}&order=sort_order.asc`);
   const cl=document.getElementById('chList');cl.innerHTML='';
@@ -448,7 +492,10 @@ function toggleBookMusic(){
     bookMusicPlaying=true;
     document.getElementById('npWave').classList.remove('paused');
     document.getElementById('npBtn').textContent='▐▐';
-    if(currentBook)loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false);
+    if(currentBook){
+      const startIndex=getBookProgress(currentBook.id);
+      loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,startIndex);
+    }
   }
 }
 
