@@ -449,11 +449,11 @@ function addChapterRow(ch){
   const div=document.createElement('div');
   div.className='ch-block collapsed'; // 默认收起
   div.innerHTML=`
-    <div class="ch-block-header" onclick="toggleChapter(this)">
-      <button class="ch-toggle" onclick="event.stopPropagation()">▼</button>
+    <div class="ch-block-header">
+      <button class="ch-toggle">▼</button>
       <input placeholder="章节编号 例：第一章" value="${ch?.num||''}" onclick="event.stopPropagation()">
       <input placeholder="章节名称" value="${ch?.name||''}" style="flex:2" onclick="event.stopPropagation()">
-      <button class="ch-del" onclick="event.stopPropagation();this.closest('.ch-block').remove()">×</button>
+      <button class="ch-del" onclick="event.stopPropagation();deleteChapter(this)">×</button>
     </div>
     <div class="ch-body-wrapper">
       <div class="ch-body-label">本章正文</div>
@@ -473,12 +473,29 @@ function addChapterRow(ch){
       </div>
     </div>`;
   el.appendChild(div);
+  
+  // 绑定点击事件到header
+  const header=div.querySelector('.ch-block-header');
+  header.addEventListener('click',function(e){
+    // 如果点击的是input或按钮，不触发折叠
+    if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;
+    toggleChapter(this);
+  });
+  
   // 设置初始高度（用于动画）
   const wrapper=div.querySelector('.ch-body-wrapper');
   wrapper.style.maxHeight='0';
+  
   // 如果是新添加的章节（没有ch参数），自动展开
   if(!ch){
-    setTimeout(()=>toggleChapter(div.querySelector('.ch-block-header')),100);
+    setTimeout(()=>toggleChapter(header),100);
+  }
+}
+
+// 删除章节前确认
+function deleteChapter(btn){
+  if(confirm('确定要删除这个章节吗？')){
+    btn.closest('.ch-block').remove();
   }
 }
 
