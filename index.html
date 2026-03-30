@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>porphyrogenitusee · Portfolio</title>
+<script src="https://www.youtube.com/iframe_api"></script>
 <style>
 :root{
   --mauve:#c4a4c0;--pink:#e8a0b0;--blue:#7096b8;--blue-light:#b8cfe8;
@@ -77,7 +78,7 @@ header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
 .yt-x{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;}
 .yt-x:hover{color:var(--gold);}
 .yt-x[hidden]{display:none;}
-#ytIframe{width:100%;height:154px;border:none;display:block;}
+#ytPlayer{width:100%;height:154px;border:none;display:block;background:#000;}
 
 /* ── MODALS: highest z-index, nothing above them ── */
 .modal-bd{
@@ -208,7 +209,7 @@ document.addEventListener('keydown',e=>{
     <div class="yt-lbl" id="ytLbl">—</div>
     <button class="yt-x" id="ytX" onclick="userHideYT()">✕</button>
   </div>
-  <iframe id="ytIframe" allow="autoplay" allowfullscreen></iframe>
+  <div id="ytPlayer"></div>
 </div>
 
 <!-- Lightbox -->
@@ -362,34 +363,117 @@ async function loadFashion(){
   }
 }
 
-/* ── YOUTUBE ── */
-let ytLocked=false,ytPlaying=false;
-function ytSrc(ytId,listId,index=0){
-  if(listId)return`https://www.youtube.com/embed/videoseries?list=${listId}&index=${index}&autoplay=1&controls=1&modestbranding=1&rel=0&enablejsapi=1`;
-  if(ytId)return`https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0&enablejsapi=1`;
-  return'';
+/* ── YOUTUBE PLAYER API ── */
+let ytPlayer=null,ytLocked=false,ytPlaying=false;
+let pendingPlaylistId=null,pendingStartIndex=1;
+
+// YouTube IFrame API 准备就绪后的回调
+window.onYouTubeIframeAPIReady=function(){
+  // API 已加载，如果有待播放的内容，立即创建播放器
+  if(pendingPlaylistId){
+    createYTPlayer(pendingPlaylistId,pendingStartIndex);
+  }
+};
+
+function createYTPlayer(playlistId,startIndex){
+  // 销毁旧播放器
+  if(ytPlayer){
+    ytPlayer.destroy();
+    ytPlayer=null;
+  }
+  
+  // 创建新播放器
+  ytPlayer=new YT.Player('ytPlayer',{
+    height:'154',
+    width:'100%',
+    playerVars:{
+      listType:'playlist',
+      list:playlistId,
+      index:startIndex-1, // YouTube API 的 index 从 0 开始，我们从 1 开始
+      autoplay:1,
+      controls:1,
+      modestbranding:1,
+      rel:0
+    },
+    events:{
+      'onReady':onPlayerReady,
+      'onStateChange':onPlayerStateChange
+    }
+  });
+  
+  document.getElementById('ytWrap').classList.add('open');
 }
-function loadYT(ytId,listId,label,locked,index=0){
-  ytLocked=!!locked;ytPlaying=true;
-  const src=ytSrc(ytId,listId,index);
+
+function onPlayerReady(event){
+  // 播放器准备好后自动播放
+  event.target.playVideo();
+}
+
+function onPlayerStateChange(event){
+  // 可以在这里监听播放状态变化
+  // YT.PlayerState.PLAYING = 1
+  // YT.PlayerState.PAUSED = 2
+  // YT.PlayerState.ENDED = 0
+}
+
+function loadYT(ytId,listId,label,locked,index=1){
+  ytLocked=!!locked;
+  ytPlaying=true;
+  
   document.getElementById('ytLbl').textContent=label||'♪';
   document.getElementById('ytX')[locked?'setAttribute':'removeAttribute']('hidden','');
   document.getElementById('gmInfo').textContent=label||'♪';
   document.getElementById('gmWave').classList.remove('paused');
   document.getElementById('gmBtn').disabled=locked;
   document.getElementById('gmBtn').textContent='▐▐';
-  if(src){document.getElementById('ytIframe').src=src;document.getElementById('ytWrap').classList.add('open');}
-  else{document.getElementById('ytIframe').src='';document.getElementById('ytWrap').classList.remove('open');}
+  
+  if(listId){
+    // 检查 YouTube API 是否已加载
+    if(typeof YT!=='undefined'&&YT.Player){
+      createYTPlayer(listId,index);
+    }else{
+      // API 还未加载，保存参数等待
+      pendingPlaylistId=listId;
+      pendingStartIndex=index;
+      document.getElementById('ytWrap').classList.add('open');
+    }
+  }else if(ytId){
+    // 单个视频的情况（保留原逻辑）
+    if(ytPlayer){
+      ytPlayer.destroy();
+      ytPlayer=null;
+    }
+    ytPlayer=new YT.Player('ytPlayer',{
+      height:'154',
+      width:'100%',
+      videoId:ytId,
+      playerVars:{
+        autoplay:1,
+        loop:1,
+        playlist:ytId,
+        controls:1,
+        modestbranding:1,
+        rel:0
+      }
+    });
+    document.getElementById('ytWrap').classList.add('open');
+  }
 }
+
 function _stopYT(){
   document.getElementById('ytWrap').classList.remove('open');
-  document.getElementById('ytIframe').src='';
+  if(ytPlayer){
+    ytPlayer.stopVideo();
+  }
   document.getElementById('gmWave').classList.add('paused');
   document.getElementById('gmBtn').textContent='▶';
   document.getElementById('gmBtn').disabled=false;
   document.getElementById('gmInfo').textContent='选择作品以播放音乐';
-  ytPlaying=false;ytLocked=false;
+  ytPlaying=false;
+  ytLocked=false;
+  pendingPlaylistId=null;
 }
+
 function userHideYT(){if(!ytLocked)_stopYT();}
 function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
 
