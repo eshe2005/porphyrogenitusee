@@ -395,6 +395,7 @@ function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
 
 /* ── BOOK ── */
 let bookMusicPlaying=false,currentBook=null,currentChapters=[],progressTimer=null;
+let bookStartTime=null,bookStartIndex=1; // 记录开始播放的时间和起始索引
 
 // 获取书籍的播放进度（返回曲目索引）
 function getBookProgress(bookId){
@@ -411,28 +412,41 @@ function saveBookProgress(bookId,index){
   }catch(e){}
 }
 
+// 计算当前应该在第几首（基于已播放时间）
+function getCurrentMusicIndex(){
+  if(!bookStartTime||!bookMusicPlaying)return bookStartIndex;
+  const elapsedMinutes=(Date.now()-bookStartTime)/60000; // 已播放分钟数
+  const songsPlayed=elapsedMinutes/4.5; // 每首歌4.5分钟
+  return Math.floor(bookStartIndex+songsPlayed);
+}
+
 // 开始进度自动保存定时器
 function startProgressTimer(bookId,startIndex){
   stopProgressTimer(); // 清除之前的定时器
-  let currentIndex=startIndex;
+  bookStartTime=Date.now(); // 记录开始时间
+  bookStartIndex=startIndex; // 记录起始索引
   
-  // 每2分钟保存一次进度（相当于约半首歌，4.5分钟一首）
+  // 每2分钟保存一次当前进度
   progressTimer=setInterval(()=>{
     if(bookMusicPlaying&&currentBook&&currentBook.id===bookId){
-      // 每2分钟，进度增加 2/4.5 ≈ 0.44首，累积到约半首时进入下一首
-      currentIndex+=0.5; // 保守估计，2分钟算半首
-      const newIndex=Math.floor(currentIndex);
-      saveBookProgress(bookId,newIndex);
+      const currentIndex=getCurrentMusicIndex();
+      saveBookProgress(bookId,currentIndex);
     }
   },120000); // 120000ms = 2分钟
 }
 
-// 停止进度保存定时器
+// 停止进度保存定时器，并保存最终进度
 function stopProgressTimer(){
   if(progressTimer){
+    // 停止前先保存一次当前进度
+    if(currentBook&&bookMusicPlaying){
+      const currentIndex=getCurrentMusicIndex();
+      saveBookProgress(currentBook.id,currentIndex);
+    }
     clearInterval(progressTimer);
     progressTimer=null;
   }
+  bookStartTime=null;
 }
 
 // 重新开始播放
@@ -499,6 +513,11 @@ function selectChapter(idx,el){
 }
 function toggleBookMusic(){
   if(bookMusicPlaying){
+    // 暂停时保存当前进度
+    if(currentBook){
+      const currentIndex=getCurrentMusicIndex();
+      saveBookProgress(currentBook.id,currentIndex);
+    }
     bookMusicPlaying=false;
     document.getElementById('npWave').classList.add('paused');
     document.getElementById('npBtn').textContent='▶';
@@ -574,6 +593,15 @@ function showNotice(msg){
   const b=document.getElementById('noticeBar');b.textContent=msg;b.classList.add('show');
   setTimeout(()=>b.classList.remove('show'),3000);
 }
+
+// 页面关闭或刷新前保存当前进度
+window.addEventListener('beforeunload',()=>{
+  if(currentBook&&bookMusicPlaying){
+    // 保存当前进度（使用已累积的进度）
+    const currentProgress=getBookProgress(currentBook.id);
+    saveBookProgress(currentBook.id,currentProgress);
+  }
+});
 
 buildParticles();
 loadBooks();loadArticles();loadFashion();
