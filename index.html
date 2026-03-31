@@ -84,15 +84,22 @@ header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
 .modal-bd{
   display:none;position:fixed;inset:0;
   z-index:1000;
-  background:rgba(5,2,12,.97);backdrop-filter:blur(14px);overflow-y:auto;
+  backdrop-filter:blur(14px);overflow-y:auto;
+}
+.modal-bd::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:rgba(5,2,12,.97);
+  z-index:-1;
 }
 .modal-bd.active{display:block;animation:mfade .38s;}
 @keyframes mfade{from{opacity:0;}to{opacity:1;}}
-.modal-inner{position:relative;max-width:780px;margin:0 auto;padding:70px 58px 90px;animation:mup .44s cubic-bezier(.16,1,.3,1);}
+.modal-inner{position:relative;max-width:780px;margin:0 auto;padding:70px 58px 90px;animation:mup .44s cubic-bezier(.16,1,.3,1);z-index:2;}
 @keyframes mup{from{transform:translateY(28px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
 /* watermark inside modal - 对角斜向重复平铺 */
-.modal-bd::before{
+.modal-bd::after{
   content:'Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee';
   position:fixed;
   top:-100%;
@@ -102,9 +109,9 @@ header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
   font-family:var(--serif);
   font-style:italic;
   font-size:28px;
-  color:rgba(212,168,85,0.08);
+  color:rgba(212,168,85,0.1);
   pointer-events:none;
-  z-index:0;
+  z-index:1;
   white-space:pre-wrap;
   word-spacing:60px;
   line-height:3.2;
@@ -112,8 +119,6 @@ header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
   transform:rotate(-35deg);
   overflow:hidden;
 }
-.modal-inner{position:relative;z-index:1;}
-
 .modal-close{position:fixed;top:22px;right:30px;z-index:1001;background:rgba(60,34,100,.72);border:1px solid rgba(212,168,85,.28);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold);font-size:18px;line-height:1;transition:background .2s;}
 .modal-close:hover{background:rgba(212,168,85,.14);}
 .modal-eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;opacity:.55;margin-bottom:18px;}
