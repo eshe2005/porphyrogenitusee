@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>porphyrogenitusee · Portfolio</title>
-<script src="https://www.youtube.com/iframe_api"></script>
 <style>
 :root{
   --mauve:#c4a4c0;--pink:#e8a0b0;--blue:#7096b8;--blue-light:#b8cfe8;
@@ -78,47 +77,31 @@ header{position:relative;z-index:10;text-align:center;padding:62px 20px 42px;}
 .yt-x{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;}
 .yt-x:hover{color:var(--gold);}
 .yt-x[hidden]{display:none;}
-#ytPlayer{width:100%;height:154px;border:none;display:block;background:#000;}
+#ytIframe{width:100%;height:154px;border:none;display:block;}
 
 /* ── MODALS: highest z-index, nothing above them ── */
 .modal-bd{
   display:none;position:fixed;inset:0;
   z-index:1000;
-  backdrop-filter:blur(14px);overflow-y:auto;
-}
-.modal-bd::before{
-  content:'';
-  position:fixed;
-  inset:0;
-  background:rgba(5,2,12,.97);
-  z-index:-1;
+  background:rgba(5,2,12,.97);backdrop-filter:blur(14px);overflow-y:auto;
 }
 .modal-bd.active{display:block;animation:mfade .38s;}
 @keyframes mfade{from{opacity:0;}to{opacity:1;}}
-.modal-inner{position:relative;max-width:780px;margin:0 auto;padding:70px 58px 90px;animation:mup .44s cubic-bezier(.16,1,.3,1);z-index:2;}
+.modal-inner{position:relative;max-width:780px;margin:0 auto;padding:70px 58px 90px;animation:mup .44s cubic-bezier(.16,1,.3,1);}
 @keyframes mup{from{transform:translateY(28px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
-/* watermark inside modal - 对角斜向重复平铺 */
-.modal-bd::after{
-  content:'Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee Porphyrogenitusee';
-  position:fixed;
-  top:-100%;
-  left:-100%;
-  right:-100%;
-  bottom:-100%;
-  font-family:var(--serif);
-  font-style:italic;
-  font-size:28px;
-  color:rgba(212,168,85,0.1);
-  pointer-events:none;
-  z-index:1;
-  white-space:pre-wrap;
-  word-spacing:60px;
-  line-height:3.2;
-  letter-spacing:3px;
-  transform:rotate(-35deg);
-  overflow:hidden;
+/* watermark inside modal via CSS only */
+.modal-bd::before{
+  content:'Porphyrogenitusee';
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) rotate(-25deg);
+  font-family:var(--serif);font-style:italic;font-size:72px;
+  color:rgba(212,168,85,0.12);
+  pointer-events:none;z-index:999;
+  white-space:nowrap;letter-spacing:8px;
 }
+.modal-inner{position:relative;z-index:1;}
+
 .modal-close{position:fixed;top:22px;right:30px;z-index:1001;background:rgba(60,34,100,.72);border:1px solid rgba(212,168,85,.28);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--gold);font-size:18px;line-height:1;transition:background .2s;}
 .modal-close:hover{background:rgba(212,168,85,.14);}
 .modal-eyebrow{font-size:9px;letter-spacing:5px;text-transform:uppercase;opacity:.55;margin-bottom:18px;}
@@ -225,7 +208,7 @@ document.addEventListener('keydown',e=>{
     <div class="yt-lbl" id="ytLbl">—</div>
     <button class="yt-x" id="ytX" onclick="userHideYT()">✕</button>
   </div>
-  <div id="ytPlayer"></div>
+  <iframe id="ytIframe" allow="autoplay" allowfullscreen></iframe>
 </div>
 
 <!-- Lightbox -->
@@ -249,7 +232,6 @@ document.addEventListener('keydown',e=>{
         <span style="background:var(--gold)"></span>
       </div>
       <div class="np-label" id="npLabel">♪ 配乐播放中</div>
-      <button class="ctrl-btn" id="npRestart" onclick="restartBookMusic()" title="重新开始">↻</button>
       <button class="ctrl-btn" id="npBtn" onclick="toggleBookMusic()">▐▐</button>
     </div>
     <div class="book-intro" id="bIntro" style="display:none">
@@ -379,187 +361,39 @@ async function loadFashion(){
   }
 }
 
-/* ── YOUTUBE PLAYER API ── */
-let ytPlayer=null,ytLocked=false,ytPlaying=false;
-let pendingPlaylistId=null,pendingStartIndex=1;
-
-// YouTube IFrame API 准备就绪后的回调
-window.onYouTubeIframeAPIReady=function(){
-  // API 已加载，如果有待播放的内容，立即创建播放器
-  if(pendingPlaylistId){
-    createYTPlayer(pendingPlaylistId,pendingStartIndex);
-  }
-};
-
-function createYTPlayer(playlistId,startIndex){
-  // 销毁旧播放器
-  if(ytPlayer){
-    ytPlayer.destroy();
-    ytPlayer=null;
-  }
-  
-  // 创建新播放器
-  ytPlayer=new YT.Player('ytPlayer',{
-    height:'154',
-    width:'100%',
-    playerVars:{
-      listType:'playlist',
-      list:playlistId,
-      index:startIndex-1, // YouTube API 的 index 从 0 开始，我们从 1 开始
-      autoplay:1,
-      controls:1,
-      modestbranding:1,
-      rel:0
-    },
-    events:{
-      'onReady':onPlayerReady,
-      'onStateChange':onPlayerStateChange
-    }
-  });
-  
-  document.getElementById('ytWrap').classList.add('open');
+/* ── YOUTUBE ── */
+let ytLocked=false,ytPlaying=false;
+function ytSrc(ytId,listId){
+  if(listId)return`https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1&controls=1&modestbranding=1&rel=0`;
+  if(ytId)return`https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&controls=1&modestbranding=1&rel=0`;
+  return'';
 }
-
-function onPlayerReady(event){
-  // 播放器准备好后自动播放
-  event.target.playVideo();
-}
-
-function onPlayerStateChange(event){
-  // 可以在这里监听播放状态变化
-  // YT.PlayerState.PLAYING = 1
-  // YT.PlayerState.PAUSED = 2
-  // YT.PlayerState.ENDED = 0
-}
-
-function loadYT(ytId,listId,label,locked,index=1){
-  ytLocked=!!locked;
-  ytPlaying=true;
-  
+function loadYT(ytId,listId,label,locked){
+  ytLocked=!!locked;ytPlaying=true;
+  const src=ytSrc(ytId,listId);
   document.getElementById('ytLbl').textContent=label||'♪';
   document.getElementById('ytX')[locked?'setAttribute':'removeAttribute']('hidden','');
   document.getElementById('gmInfo').textContent=label||'♪';
   document.getElementById('gmWave').classList.remove('paused');
   document.getElementById('gmBtn').disabled=locked;
   document.getElementById('gmBtn').textContent='▐▐';
-  
-  if(listId){
-    // 检查 YouTube API 是否已加载
-    if(typeof YT!=='undefined'&&YT.Player){
-      createYTPlayer(listId,index);
-    }else{
-      // API 还未加载，保存参数等待
-      pendingPlaylistId=listId;
-      pendingStartIndex=index;
-      document.getElementById('ytWrap').classList.add('open');
-    }
-  }else if(ytId){
-    // 单个视频的情况（保留原逻辑）
-    if(ytPlayer){
-      ytPlayer.destroy();
-      ytPlayer=null;
-    }
-    ytPlayer=new YT.Player('ytPlayer',{
-      height:'154',
-      width:'100%',
-      videoId:ytId,
-      playerVars:{
-        autoplay:1,
-        loop:1,
-        playlist:ytId,
-        controls:1,
-        modestbranding:1,
-        rel:0
-      }
-    });
-    document.getElementById('ytWrap').classList.add('open');
-  }
+  if(src){document.getElementById('ytIframe').src=src;document.getElementById('ytWrap').classList.add('open');}
+  else{document.getElementById('ytIframe').src='';document.getElementById('ytWrap').classList.remove('open');}
 }
-
 function _stopYT(){
   document.getElementById('ytWrap').classList.remove('open');
-  if(ytPlayer){
-    ytPlayer.stopVideo();
-  }
+  document.getElementById('ytIframe').src='';
   document.getElementById('gmWave').classList.add('paused');
   document.getElementById('gmBtn').textContent='▶';
   document.getElementById('gmBtn').disabled=false;
   document.getElementById('gmInfo').textContent='选择作品以播放音乐';
-  ytPlaying=false;
-  ytLocked=false;
-  pendingPlaylistId=null;
+  ytPlaying=false;ytLocked=false;
 }
-
 function userHideYT(){if(!ytLocked)_stopYT();}
 function toggleGM(){if(!ytLocked&&ytPlaying)_stopYT();}
 
 /* ── BOOK ── */
-let bookMusicPlaying=false,currentBook=null,currentChapters=[],progressTimer=null;
-let bookStartTime=null,bookStartIndex=1; // 记录开始播放的时间和起始索引
-
-// 获取书籍的播放进度（返回曲目索引）
-function getBookProgress(bookId){
-  try{
-    const saved=localStorage.getItem('book_music_'+bookId);
-    return saved?parseInt(saved):1;
-  }catch(e){return 1;}
-}
-
-// 保存书籍的播放进度（曲目索引）
-function saveBookProgress(bookId,index){
-  try{
-    localStorage.setItem('book_music_'+bookId,index);
-  }catch(e){}
-}
-
-// 计算当前应该在第几首（基于已播放时间）
-function getCurrentMusicIndex(){
-  if(!bookStartTime||!bookMusicPlaying)return bookStartIndex;
-  const elapsedMinutes=(Date.now()-bookStartTime)/60000; // 已播放分钟数
-  const songsPlayed=elapsedMinutes/4.5; // 每首歌4.5分钟
-  return Math.floor(bookStartIndex+songsPlayed);
-}
-
-// 开始进度自动保存定时器
-function startProgressTimer(bookId,startIndex){
-  stopProgressTimer(); // 清除之前的定时器
-  bookStartTime=Date.now(); // 记录开始时间
-  bookStartIndex=startIndex; // 记录起始索引
-  
-  // 每2分钟保存一次当前进度
-  progressTimer=setInterval(()=>{
-    if(bookMusicPlaying&&currentBook&&currentBook.id===bookId){
-      const currentIndex=getCurrentMusicIndex();
-      saveBookProgress(bookId,currentIndex);
-    }
-  },120000); // 120000ms = 2分钟
-}
-
-// 停止进度保存定时器，并保存最终进度
-function stopProgressTimer(){
-  // 停止前先保存一次当前进度（不检查bookMusicPlaying状态）
-  if(currentBook&&bookStartTime){
-    const currentIndex=getCurrentMusicIndex();
-    saveBookProgress(currentBook.id,currentIndex);
-  }
-  if(progressTimer){
-    clearInterval(progressTimer);
-    progressTimer=null;
-  }
-  bookStartTime=null;
-}
-
-// 重新开始播放
-function restartBookMusic(){
-  if(!currentBook||!currentBook.playlist_id)return;
-  saveBookProgress(currentBook.id,1);
-  bookMusicPlaying=true;
-  document.getElementById('npWave').classList.remove('paused');
-  document.getElementById('npBtn').textContent='▐▐';
-  loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,1);
-  startProgressTimer(currentBook.id,1);
-}
-
+let bookMusicPlaying=false,currentBook=null,currentChapters=[];
 async function openBook(b){
   currentBook=b;currentChapters=[];
   document.getElementById('bTitle').textContent='《'+b.title+'》';
@@ -575,14 +409,7 @@ async function openBook(b){
   document.getElementById('npBtn').textContent='▐▐';
   bookMusicPlaying=true;
   _stopYT();
-  
-  // 获取上次播放进度，如果没有则从第1首开始
-  const startIndex=getBookProgress(b.id);
-  loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false,startIndex);
-  
-  // 启动进度自动保存定时器
-  startProgressTimer(b.id,startIndex);
-  
+  loadYT('',b.playlist_id,b.playlist_label||b.title+' — 配乐集',false);
   document.getElementById('bookModal').classList.add('active');
   currentChapters=await sb('chapters',`?book_id=eq.${b.id}&order=sort_order.asc`);
   const cl=document.getElementById('chList');cl.innerHTML='';
@@ -613,25 +440,15 @@ function selectChapter(idx,el){
 }
 function toggleBookMusic(){
   if(bookMusicPlaying){
-    // 暂停时保存当前进度（使用实时计算）
-    if(currentBook&&bookStartTime){
-      const currentIndex=getCurrentMusicIndex();
-      saveBookProgress(currentBook.id,currentIndex);
-    }
     bookMusicPlaying=false;
     document.getElementById('npWave').classList.add('paused');
     document.getElementById('npBtn').textContent='▶';
-    stopProgressTimer(); // 暂停时停止计时（已在内部保存）
     _stopYT();
   } else {
     bookMusicPlaying=true;
     document.getElementById('npWave').classList.remove('paused');
     document.getElementById('npBtn').textContent='▐▐';
-    if(currentBook){
-      const startIndex=getBookProgress(currentBook.id);
-      loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false,startIndex);
-      startProgressTimer(currentBook.id,startIndex); // 继续播放时重新启动计时
-    }
+    if(currentBook)loadYT('',currentBook.playlist_id,currentBook.playlist_label||currentBook.title+' — 配乐集',false);
   }
 }
 
@@ -666,13 +483,7 @@ async function openFashion(f){
 /* ── CLOSE ── */
 function closeModal(id){
   document.getElementById(id).classList.remove('active');
-  if(id==='bookModal'){
-    stopProgressTimer(); // 先保存进度（内部会自动保存）
-    bookMusicPlaying=false; // 再修改状态
-    document.getElementById('npWave').classList.add('paused');
-    document.getElementById('chContent').classList.remove('visible');
-    _stopYT();
-  }
+  if(id==='bookModal'){bookMusicPlaying=false;document.getElementById('npWave').classList.add('paused');document.getElementById('chContent').classList.remove('visible');_stopYT();}
   if(id==='fashionModal'){_stopYT();}
   if(id==='articleModal')document.getElementById('gmInfo').textContent='选择作品以播放音乐';
 }
@@ -693,15 +504,6 @@ function showNotice(msg){
   const b=document.getElementById('noticeBar');b.textContent=msg;b.classList.add('show');
   setTimeout(()=>b.classList.remove('show'),3000);
 }
-
-// 页面关闭或刷新前保存当前进度
-window.addEventListener('beforeunload',()=>{
-  if(currentBook&&bookStartTime){
-    // 保存当前实时计算的进度
-    const currentIndex=getCurrentMusicIndex();
-    saveBookProgress(currentBook.id,currentIndex);
-  }
-});
 
 buildParticles();
 loadBooks();loadArticles();loadFashion();
