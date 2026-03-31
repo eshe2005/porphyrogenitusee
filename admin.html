@@ -74,15 +74,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .img-preview{width:80px;height:110px;object-fit:cover;border-radius:4px;margin-top:10px;}
 /* chapters */
 .ch-block{background:rgba(255,255,255,.03);border:1px solid rgba(212,168,85,.1);border-radius:8px;padding:14px;margin-bottom:12px;}
-.ch-block-header{display:flex;gap:8px;align-items:center;margin-bottom:10px;cursor:pointer;user-select:none;}
-.ch-block-header:hover{background:rgba(212,168,85,.05);margin:-4px;padding:4px;border-radius:6px;}
+.ch-block-header{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
 .ch-block-header input{flex:1;padding:8px 12px;background:rgba(255,255,255,.05);border:1px solid rgba(212,168,85,.15);border-radius:6px;color:#f0e8f0;font-size:13px;outline:none;}
 .ch-block-header input:focus{border-color:rgba(212,168,85,.4);}
-.ch-toggle{background:none;border:none;color:#d4a855;cursor:pointer;font-size:14px;padding:4px 8px;line-height:1;transition:transform .2s;flex-shrink:0;}
-.ch-block.collapsed .ch-toggle{transform:rotate(-90deg);}
 .ch-del{background:none;border:none;color:#e8a0b0;cursor:pointer;font-size:18px;padding:4px;line-height:1;}
-.ch-body-wrapper{overflow:hidden;transition:max-height .3s ease;}
-.ch-block.collapsed .ch-body-wrapper{max-height:0!important;}
 .ch-body-label{font-size:10px;letter-spacing:2px;color:#c0a0c0;text-transform:uppercase;margin-bottom:6px;}
 .add-ch-btn{padding:8px 16px;background:transparent;border:1px dashed rgba(212,168,85,.2);border-radius:6px;color:#d4a855;cursor:pointer;font-size:12px;letter-spacing:1px;margin-top:4px;}
 .add-ch-btn:hover{background:rgba(212,168,85,.08);}
@@ -447,71 +442,29 @@ async function renderChapters(bookId){
 function addChapterRow(ch){
   const el=document.getElementById('bfChapters');
   const div=document.createElement('div');
-  div.className='ch-block collapsed'; // 默认收起
+  div.className='ch-block';
   div.innerHTML=`
     <div class="ch-block-header">
-      <button class="ch-toggle">▼</button>
-      <input placeholder="章节编号 例：第一章" value="${ch?.num||''}" onclick="event.stopPropagation()">
-      <input placeholder="章节名称" value="${ch?.name||''}" style="flex:2" onclick="event.stopPropagation()">
-      <button class="ch-del" onclick="event.stopPropagation();deleteChapter(this)">×</button>
+      <input placeholder="章节编号 例：第一章" value="${ch?.num||''}">
+      <input placeholder="章节名称" value="${ch?.name||''}" style="flex:2">
+      <button class="ch-del" onclick="this.closest('.ch-block').remove()">×</button>
     </div>
-    <div class="ch-body-wrapper">
-      <div class="ch-body-label">本章正文</div>
-      <div class="rte-wrap">
-        <div class="rte-toolbar" style="padding:5px 8px;">
-          <button class="rte-btn" onclick="execOnTarget(this,'bold')"><b>B</b></button>
-          <button class="rte-btn" onclick="execOnTarget(this,'italic')"><i>I</i></button>
-          <button class="rte-btn" onclick="execOnTarget(this,'underline')"><u>U</u></button>
-          <div class="rte-sep"></div>
-          <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','p')">¶</button>
-          <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','blockquote')">"</button>
-          <button class="rte-btn" onclick="execOnTarget(this,'insertUnorderedList')">• 列表</button>
-          <div class="rte-sep"></div>
-          <button class="rte-btn" onclick="execOnTarget(this,'removeFormat')">清除</button>
-        </div>
-        <div class="rte-body ch-body-editor" contenteditable="true" spellcheck="false" style="min-height:120px;font-size:13px;">${ch?.body||''}</div>
+    <div class="ch-body-label">本章正文</div>
+    <div class="rte-wrap">
+      <div class="rte-toolbar" style="padding:5px 8px;">
+        <button class="rte-btn" onclick="execOnTarget(this,'bold')"><b>B</b></button>
+        <button class="rte-btn" onclick="execOnTarget(this,'italic')"><i>I</i></button>
+        <button class="rte-btn" onclick="execOnTarget(this,'underline')"><u>U</u></button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','p')">¶</button>
+        <button class="rte-btn" onclick="execOnTarget(this,'formatBlock','blockquote')">"</button>
+        <button class="rte-btn" onclick="execOnTarget(this,'insertUnorderedList')">• 列表</button>
+        <div class="rte-sep"></div>
+        <button class="rte-btn" onclick="execOnTarget(this,'removeFormat')">清除</button>
       </div>
+      <div class="rte-body ch-body-editor" contenteditable="true" spellcheck="false" style="min-height:120px;font-size:13px;">${ch?.body||''}</div>
     </div>`;
   el.appendChild(div);
-  
-  // 绑定点击事件到header
-  const header=div.querySelector('.ch-block-header');
-  header.addEventListener('click',function(e){
-    // 如果点击的是input或按钮，不触发折叠
-    if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;
-    toggleChapter(this);
-  });
-  
-  // 设置初始高度（用于动画）
-  const wrapper=div.querySelector('.ch-body-wrapper');
-  wrapper.style.maxHeight='0';
-  
-  // 如果是新添加的章节（没有ch参数），自动展开
-  if(!ch){
-    setTimeout(()=>toggleChapter(header),100);
-  }
-}
-
-// 删除章节前确认
-function deleteChapter(btn){
-  if(confirm('确定要删除这个章节吗？')){
-    btn.closest('.ch-block').remove();
-  }
-}
-
-// 切换章节展开/收起
-function toggleChapter(headerEl){
-  const block=headerEl.closest('.ch-block');
-  const wrapper=block.querySelector('.ch-body-wrapper');
-  if(block.classList.contains('collapsed')){
-    // 展开
-    wrapper.style.maxHeight=wrapper.scrollHeight+'px';
-    block.classList.remove('collapsed');
-  }else{
-    // 收起
-    wrapper.style.maxHeight='0';
-    block.classList.add('collapsed');
-  }
 }
 
 async function previewCover(input){
